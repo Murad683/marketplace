@@ -92,6 +92,10 @@ public class OrderService {
 
     @Transactional
     public OrderResponse updateOrderStatus(Merchant merchant, Long orderId, UpdateOrderStatusRequest req) {
+        if (req.getStatus() == OrderStatus.REJECT_BY_CUSTOMER) {
+            throw new IllegalArgumentException("Merchant cannot set status to REJECT_BY_CUSTOMER");
+        }
+
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("Order not found"));
 
@@ -100,14 +104,27 @@ public class OrderService {
             throw new AccessDeniedException("You cannot update this order");
         }
 
+        OrderStatus prevStatus = order.getStatus();
         OrderStatus newStatus = req.getStatus();
         order.setStatus(newStatus);
 
-        if ((newStatus == OrderStatus.REJECT_BY_MERCHANT || newStatus == OrderStatus.REJECT_BY_CUSTOMER)
-                && req.getRejectReason() != null && !req.getRejectReason().isBlank()) {
-            order.setRejectReason(req.getRejectReason());
+        if (newStatus == OrderStatus.REJECT_BY_MERCHANT || newStatus == OrderStatus.REJECT_BY_CUSTOMER) {
+            if (req.getRejectReason() != null && !req.getRejectReason().isBlank()) {
+                order.setRejectReason(req.getRejectReason());
+            }
+        } else {
+            // Moving away from rejection clears old reason
+            order.setRejectReason(null);
         }
 
+        if (newStatus == OrderStatus.REJECT_BY_MERCHANT
+                && prevStatus != OrderStatus.REJECT_BY_MERCHANT
+                && prevStatus != OrderStatus.REJECT_BY_CUSTOMER) {
+            Product product = order.getProduct();
+            int currentStock = Optional.ofNullable(product.getStockCount()).orElse(0);
+            product.setStockCount(currentStock + Optional.ofNullable(order.getCount()).orElse(0));
+            productRepository.save(product);
+        }
         order = orderRepository.save(order);
         return toOrderResponse(order);
     }
@@ -138,6 +155,12 @@ public class OrderService {
 
         order.setStatus(OrderStatus.REJECT_BY_CUSTOMER);
         order.setRejectReason(reason);
+        // restore stock because customer cancelled
+        Product product = order.getProduct();
+        int currentStock = Optional.ofNullable(product.getStockCount()).orElse(0);
+        product.setStockCount(currentStock + Optional.ofNullable(order.getCount()).orElse(0));
+        productRepository.save(product);
+
         order = orderRepository.save(order);
 
         return toOrderResponse(order);

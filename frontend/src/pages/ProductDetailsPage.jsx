@@ -122,53 +122,47 @@ export default function ProductDetailsPage() {
   })();
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="text-sm text-blue-600 mb-4">
-        <button onClick={() => navigate(-1)} className="hover:underline">
-          ← Back
-        </button>
-      </div>
+    <div className="max-w-6xl mx-auto p-6 space-y-4">
+      <button
+        onClick={() => navigate(-1)}
+        className="text-sm muted inline-flex items-center gap-1 hover:underline"
+      >
+        ← Back
+      </button>
 
-      <div className="grid md:grid-cols-2 gap-8 bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+      <div className="token-card p-6 lg:p-8 grid md:grid-cols-2 gap-6 lg:gap-8">
         {/* LEFT: images */}
         <div>
           <ImageGallery productId={product.id} photoIds={product.photoIds || []} />
         </div>
 
         {/* RIGHT: info */}
-        <div className="flex flex-col">
-          <div className="text-xs uppercase tracking-wide text-blue-600 font-semibold mb-2">
-            {product.categoryName}
-          </div>
-
-          <h1 className="text-2xl font-semibold mb-2">{product.name}</h1>
-
-          {addedStr && (
-            <div className="mb-3">
-              <div className="inline-flex items-center gap-2 text-xs text-gray-500 border rounded-full px-3 py-1">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="chip uppercase tracking-wide text-[11px]">
+              {product.categoryName}
+            </div>
+            {addedStr && (
+              <div className="chip text-[11px]">
                 <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor">
                   <path d="M6 2a1 1 0 100 2h8a1 1 0 100-2H6zM4 6a2 2 0 00-2 2v6a4 4 0 004 4h8a4 4 0 004-4V8a2 2 0 00-2-2H4zm1 3h10v7a2 2 0 01-2 2H7a2 2 0 01-2-2V9z" />
                 </svg>
                 Added: {addedStr}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className="text-sm leading-relaxed mb-4 text-gray-600">
+          <h1 className="text-2xl font-semibold leading-tight">{product.name}</h1>
+
+          <div className="text-sm leading-relaxed section-meta">
             {product.details}
           </div>
 
-          <div className="flex items-baseline gap-3 mb-4">
-            <div className="text-2xl font-semibold">${product.price}</div>
-            <div className="text-sm text-gray-500">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl font-semibold">${product.price}</div>
+            <div className="text-sm section-meta">
               Stock:{" "}
-              <span
-                className={
-                  product.stockCount > 0
-                    ? "text-green-600 font-medium"
-                    : "text-red-600 font-medium"
-                }
-              >
+              <span className="font-semibold">
                 {product.stockCount > 0
                   ? `${product.stockCount} available`
                   : "Out of stock"}
@@ -177,11 +171,11 @@ export default function ProductDetailsPage() {
           </div>
 
           {/* 👉 CLICKABLE MERCHANT */}
-          <div className="text-sm text-gray-500 mb-6">
-            Sold by:{" "}
+          <div className="text-sm section-meta">
+            Sold by{" "}
             <Link
               to={`/merchant/${product.merchantId}`}
-              className="font-medium text-blue-600 hover:underline"
+              className="font-semibold hover:underline"
               aria-label={`View all products by ${product.merchantCompanyName}`}
             >
               {product.merchantCompanyName}
@@ -190,14 +184,14 @@ export default function ProductDetailsPage() {
 
           {/** CUSTOMER actions */}
           {isCustomer && (
-            <div className="space-y-4 mb-8">
+            <div className="space-y-4">
               <div>
-                <div className="text-xs text-gray-500 mb-2 font-medium">
+                <div className="text-xs section-meta mb-2 font-medium">
                   Quantity
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <button
-                    className="px-3 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-40"
+                    className="btn btn-secondary px-3 py-2"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                     disabled={quantity <= 1}
                   >
@@ -207,7 +201,7 @@ export default function ProductDetailsPage() {
                     {quantity}
                   </div>
                   <button
-                    className="px-3 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-40"
+                    className="btn btn-secondary px-3 py-2"
                     onClick={() =>
                       setQuantity((q) =>
                         Math.min(product.stockCount ?? 1, q + 1)
@@ -217,14 +211,14 @@ export default function ProductDetailsPage() {
                   >
                     +
                   </button>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs section-meta">
                     In stock: {product.stockCount}
                   </div>
                 </div>
               </div>
 
               <button
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-3 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                className="btn btn-primary w-full"
                 disabled={(product.stockCount ?? 0) === 0 || quantity < 1}
                 onClick={handleAddToCart}
               >
@@ -232,7 +226,7 @@ export default function ProductDetailsPage() {
               </button>
 
               <button
-                className="w-full bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 font-semibold px-4 py-3 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                className="btn btn-secondary w-full"
                 disabled={wishLoading}
                 onClick={handleWishlistToggle}
               >
@@ -242,19 +236,19 @@ export default function ProductDetailsPage() {
           )}
 
           {isMerchant && (
-            <div className="mb-8">
+            <div>
               <Link
                 to={`/merchant/edit-product/${product.id}`}
-                className="inline-block bg-amber-500 hover:bg-amber-400 text-black font-semibold px-4 py-2 rounded-lg"
+                className="btn btn-primary"
               >
                 Edit Product
               </Link>
             </div>
           )}
 
-          {errorMsg && <div className="text-red-600 text-sm mb-2">{errorMsg}</div>}
+          {errorMsg && <div className="text-red-600 text-sm">{errorMsg}</div>}
           {successMsg && (
-            <div className="text-green-600 text-sm mb-2">{successMsg}</div>
+            <div className="text-emerald-600 text-sm">{successMsg}</div>
           )}
         </div>
       </div>

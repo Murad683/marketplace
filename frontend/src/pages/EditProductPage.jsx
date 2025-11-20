@@ -44,7 +44,7 @@ export default function EditProductPage() {
 
   if (!isMerchant) {
     return (
-      <div className="max-w-md mx-auto mt-10 text-center text-gray-500 bg-white border rounded-xl p-8 shadow">
+      <div className="token-card max-w-md mx-auto mt-10 text-center p-8 section-meta">
         Only merchants can edit products.
       </div>
     );
@@ -120,20 +120,20 @@ export default function EditProductPage() {
 
   if (!loaded) {
     return (
-      <div className="text-center py-12 text-gray-500">Loading product...</div>
+      <div className="text-center py-12 section-meta">Loading product...</div>
     );
   }
 
   return (
     <div className="max-w-xl mx-auto px-6 py-8">
-      <div className="bg-white border rounded-xl shadow-sm p-6">
+      <div className="token-card p-6 space-y-4">
         <div className="flex items-start justify-between mb-4">
-          <h1 className="text-xl font-semibold text-gray-800">
+          <h1 className="text-xl font-semibold">
             Edit Product
           </h1>
           <button
             onClick={handleDelete}
-            className="text-red-600 text-sm border border-red-300 rounded-md px-2 py-1 hover:bg-red-50"
+            className="btn btn-secondary text-sm"
           >
             Delete
           </button>
@@ -141,14 +141,14 @@ export default function EditProductPage() {
 
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="text-sm text-gray-700 font-medium block mb-1">
+            <label className="text-sm font-medium block mb-1 section-meta">
               Category
             </label>
             <select
               name="categoryId"
               value={form.categoryId}
               onChange={handleChange}
-              className="w-full border rounded-md px-3 py-2 text-sm"
+              className="field w-full text-sm"
               required
             >
               {categories.map((c) => (
@@ -160,26 +160,26 @@ export default function EditProductPage() {
           </div>
 
           <div>
-            <label className="text-sm text-gray-700 font-medium block mb-1">
+            <label className="text-sm font-medium block mb-1 section-meta">
               Name
             </label>
             <input
               name="name"
               value={form.name}
-              className="w-full border rounded-md px-3 py-2 text-sm"
+              className="field w-full text-sm"
               onChange={handleChange}
               required
             />
           </div>
 
           <div>
-            <label className="text-sm text-gray-700 font-medium block mb-1">
+            <label className="text-sm font-medium block mb-1 section-meta">
               Details
             </label>
             <textarea
               name="details"
               value={form.details}
-              className="w-full border rounded-md px-3 py-2 text-sm h-24"
+              className="field w-full text-sm h-24"
               onChange={handleChange}
               required
             />
@@ -187,7 +187,7 @@ export default function EditProductPage() {
 
           <div className="flex gap-4">
             <div className="flex-1">
-              <label className="text-sm text-gray-700 font-medium block mb-1">
+              <label className="text-sm font-medium block mb-1 section-meta">
                 Price
               </label>
               <input
@@ -195,21 +195,21 @@ export default function EditProductPage() {
                 type="number"
                 step="0.01"
                 value={form.price}
-                className="w-full border rounded-md px-3 py-2 text-sm"
+                className="field w-full text-sm"
                 onChange={handleChange}
                 required
               />
             </div>
 
             <div className="flex-1">
-              <label className="text-sm text-gray-700 font-medium block mb-1">
+              <label className="text-sm font-medium block mb-1 section-meta">
                 Stock Count
               </label>
               <input
                 name="stockCount"
                 type="number"
                 value={form.stockCount}
-                className="w-full border rounded-md px-3 py-2 text-sm"
+                className="field w-full text-sm"
                 onChange={handleChange}
                 required
               />
@@ -217,13 +217,13 @@ export default function EditProductPage() {
           </div>
 
           <button
-            className="w-full bg-blue-600 text-white py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+            className="btn btn-primary w-full text-sm"
             type="submit"
           >
             Save Changes
           </button>
 
-          <div className="text-[11px] text-gray-500 text-center mt-4 leading-relaxed">
+          <div className="text-[11px] section-meta text-center mt-4 leading-relaxed">
             You cannot delete a product that already appears in customer
             orders. This is normal business logic so that order history
             remains valid.

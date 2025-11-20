@@ -23,6 +23,9 @@ public class ProductPhotoService {
     private final ProductPhotoRepository productPhotoRepository;
     private final CurrentUserService currentUserService;
 
+    // should match the application multipart config (5MB)
+    private static final long MAX_FILE_SIZE_BYTES = 5L * 1024L * 1024L;
+
     @Transactional
     public ProductPhotoResponse uploadPhoto(Long productId, MultipartFile file) {
 
@@ -34,6 +37,11 @@ public class ProductPhotoService {
         // icazə: yalnız həmin merchant yaxud superuser
         if (!currentUserService.canManageProducts(ownerUsername)) {
             throw new AccessDeniedException("You cannot upload photo for this product");
+        }
+
+        // quick service-level size check to provide a clear error before trying to read
+        if (file.getSize() > MAX_FILE_SIZE_BYTES) {
+            throw new IllegalArgumentException("File size exceeds maximum allowed (5 MB)");
         }
 
         byte[] bytes;

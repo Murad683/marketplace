@@ -39,7 +39,11 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersForMerchant(merchant));
     }
 
-    @PatchMapping("/merchant/orders/{orderId}/status")
+    // Merchant status update: allow both PATCH and POST (PATCH can be blocked in some setups)
+    @RequestMapping(
+            path = "/merchant/orders/{orderId}/status",
+            method = { RequestMethod.PATCH, RequestMethod.POST }
+    )
     public ResponseEntity<OrderResponse> updateStatus(
             @PathVariable Long orderId,
             @Valid @RequestBody UpdateOrderStatusRequest req

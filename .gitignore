@@ -3,15 +3,21 @@
 /backend/.gradle/
 /backend/.idea/
 /backend/out/
+/backend/*.log
 
 # Frontend
 /frontend/node_modules/
 /frontend/dist/
+/frontend/.vite/
 /frontend/.idea/
 /frontend/.vscode/
+/frontend/*.log
+/frontend/coverage/
 
 # Ümumi
 .idea/
 .vscode/
 .DS_Store
 Thumbs.db
+.env
+.env.*

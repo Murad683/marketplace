@@ -22,7 +22,7 @@ export default function App() {
   return (
     <Router>
       {/* root layout: bg & text hər iki tema üçün */}
-      <div className="min-h-screen flex flex-col bg-gray-100 text-gray-900 dark:bg-zinc-900 dark:text-zinc-100 transition-colors">
+      <div className="app-shell min-h-screen flex flex-col transition-colors">
         {/* HEADER */}
         <Header />
 
@@ -69,7 +69,7 @@ export default function App() {
         </main>
 
         {/* FOOTER */}
-        <footer className="text-center text-[11px] text-gray-500 dark:text-zinc-500 py-6 border-t border-gray-200 dark:border-zinc-800">
+        <footer className="text-center text-[11px] section-meta py-6 border-t divider">
           marketplace demo
         </footer>
       </div>

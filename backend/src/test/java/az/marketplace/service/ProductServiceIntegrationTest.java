@@ -81,10 +81,6 @@ public class ProductServiceIntegrationTest {
         req.setPrice(999.99);
         req.setStockCount(7);
         req.setCategoryId(category.getId());
-        req.setPhotoUrls(List.of(
-                "https://example.com/ps5-front.jpg",
-                "https://example.com/ps5-side.jpg"
-        ));
 
         ProductResponse response = productService.createProduct(req, merchant);
 
@@ -92,11 +88,11 @@ public class ProductServiceIntegrationTest {
         assertThat(response.getName()).isEqualTo("PlayStation 5");
         assertThat(response.getCategoryName()).isEqualTo("Test Category");
         assertThat(response.getMerchantCompanyName()).isEqualTo("Test Seller LLC");
-        assertThat(response.getPhotoUrls()).hasSize(2);
+        assertThat(response.getPhotoIds()).isEmpty();
 
         Product fromDb = productRepository.findById(response.getId()).orElseThrow();
         assertThat(fromDb.getName()).isEqualTo("PlayStation 5");
-        assertThat(fromDb.getPhotos()).hasSize(2);
+        assertThat(fromDb.getPhotos()).isNullOrEmpty();
     }
 
     @Test

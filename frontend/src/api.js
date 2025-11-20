@@ -168,30 +168,47 @@ export const getMerchantOrders = (auth) =>
   requestJson("/merchant/orders", { token: auth?.token });
 
 // merchant: update status
-export const updateOrderStatus = (orderId, body, auth) =>
-  requestJson(`/merchant/orders/${orderId}/status`, {
-    method: "PATCH",
-    body,
-    token: auth?.token,
-  });
+export async function updateOrderStatus(orderId, body, auth) {
+  const send = (method) =>
+    requestJson(`/merchant/orders/${orderId}/status`, {
+      method,
+      body,
+      token: auth?.token,
+    });
+
+  try {
+    return await send("PATCH");
+  } catch (e) {
+    const msg = String(e?.message || "");
+    const methodBlocked = msg.includes("No static resource") || msg.includes("405") || msg.includes("404");
+    const networkFailed = e instanceof TypeError || msg.includes("Failed to fetch") || msg.includes("NetworkError");
+
+    if (methodBlocked || networkFailed) {
+      return await send("POST");
+    }
+    throw e;
+  }
+}
 
 // customer: cancel own (REJECT_BY_CUSTOMER with reason)
 // PATCH əsas, POST fallback (bəzi mühitlərdə/proxylərdə PATCH ilişə bilər)
 export async function cancelOrder(orderId, reason, auth) {
-  try {
-    return await requestJson(`/orders/${orderId}/cancel`, {
-      method: "PATCH",
+  const send = (method) =>
+    requestJson(`/orders/${orderId}/cancel`, {
+      method,
       body: { reason },
       token: auth?.token,
     });
+
+  try {
+    return await send("PATCH");
   } catch (e) {
     const msg = String(e?.message || "");
-    if (msg.includes("No static resource") || msg.includes("405") || msg.includes("404")) {
-      return await requestJson(`/orders/${orderId}/cancel`, {
-        method: "POST",
-        body: { reason },
-        token: auth?.token,
-      });
+    const methodBlocked = msg.includes("No static resource") || msg.includes("405") || msg.includes("404");
+    const networkFailed = e instanceof TypeError || msg.includes("Failed to fetch") || msg.includes("NetworkError");
+
+    if (methodBlocked || networkFailed) {
+      return await send("POST");
     }
     throw e;
   }

@@ -57,8 +57,8 @@ export default function MerchantProductsPage() {
     <div className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{merchantName}</h1>
-          <p className="text-sm text-gray-500">All listings by this merchant</p>
+          <h1 className="text-2xl font-bold">{merchantName}</h1>
+          <p className="text-sm section-meta">All listings by this merchant</p>
         </div>
 
         <div className="grid gap-2 md:grid-cols-3">
@@ -66,12 +66,12 @@ export default function MerchantProductsPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search this merchant…"
-            className="h-10 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="field h-10 text-sm"
           />
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="h-10 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="field h-10 text-sm"
           >
             <option value="newest">Newest</option>
             <option value="priceAsc">Price ↑</option>
@@ -80,7 +80,7 @@ export default function MerchantProductsPage() {
           </select>
           <Link
             to="/"
-            className="h-10 inline-flex items-center justify-center rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 transition-all"
+            className="h-10 inline-flex items-center justify-center btn btn-secondary text-sm"
           >
             ← Back to all
           </Link>
@@ -92,12 +92,12 @@ export default function MerchantProductsPage() {
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="h-64 animate-pulse rounded-2xl border border-gray-200 bg-gray-50"
+              className="h-64 animate-pulse rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-tertiary)]"
             />
           ))}
         </div>
       ) : list.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center text-gray-500">
+        <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-subtle)] bg-[var(--surface-card)] p-10 text-center section-meta">
           This merchant has no active listings.
         </div>
       ) : (

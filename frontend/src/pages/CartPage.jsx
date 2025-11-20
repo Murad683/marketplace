@@ -38,7 +38,7 @@ export default function CartPage() {
 
   if (!isCustomer) {
     return (
-      <div className="max-w-md mx-auto mt-10 text-center text-gray-500 bg-white border rounded-xl p-8 shadow">
+      <div className="token-card max-w-md mx-auto mt-10 text-center p-8 section-meta">
         Only customers can view cart.
       </div>
     );
@@ -47,38 +47,38 @@ export default function CartPage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">My Cart</h1>
-        <div className="text-sm text-gray-500">{items.length} items</div>
+        <h1 className="text-2xl font-semibold">My Cart</h1>
+        <div className="text-sm section-meta">{items.length} items</div>
       </div>
 
-      <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
+      <div className="token-card overflow-hidden">
         {items.length === 0 ? (
-          <div className="p-8 text-gray-500 text-center">Cart is empty.</div>
+          <div className="p-8 section-meta text-center">Cart is empty.</div>
         ) : (
-          <ul className="divide-y">
+          <ul className="order-list">
             {items.map((it) => (
               <li
                 key={it.itemId}
                 className="flex items-start justify-between gap-4 p-4"
               >
                 <div>
-                  <div className="font-medium text-gray-800">
+                  <div className="font-medium">
                     {it.productName}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm section-meta">
                     Count: {it.count}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm section-meta">
                     Unit: ${it.pricePerUnit}
                   </div>
-                  <div className="text-sm font-semibold text-blue-600">
+                  <div className="text-sm font-semibold">
                     Total: ${it.totalPrice}
                   </div>
                 </div>
 
                 <button
                   onClick={() => handleDelete(it.itemId)}
-                  className="text-red-500 text-sm border border-red-300 rounded-md px-2 py-1 hover:bg-red-50"
+                  className="btn btn-secondary text-sm"
                 >
                   Remove
                 </button>
@@ -87,19 +87,15 @@ export default function CartPage() {
           </ul>
         )}
 
-        <div className="flex items-center justify-between p-4 border-t bg-gray-50">
-          <div className="text-lg font-semibold text-gray-800">
+        <div className="flex items-center justify-between p-4 border-t border-[var(--divider)] section-head rounded-b-[inherit]">
+          <div className="text-lg font-semibold">
             Grand Total: ${total}
           </div>
 
           <button
             disabled={items.length === 0}
             onClick={handleCheckout}
-            className={`rounded-md text-sm font-medium px-4 py-2 ${
-              items.length === 0
-                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
+            className="btn btn-primary text-sm"
           >
             Checkout
           </button>

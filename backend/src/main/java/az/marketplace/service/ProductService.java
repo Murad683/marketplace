@@ -45,6 +45,8 @@ public class ProductService {
 
     @Transactional
     public ProductResponse createProduct(ProductRequest req, Merchant merchant) {
+        validateProductRequest(req);
+
         Category category = categoryRepository.findById(req.getCategoryId())
                 .orElseThrow(() -> new NotFoundException("Category not found"));
 
@@ -63,6 +65,8 @@ public class ProductService {
 
     @Transactional
     public ProductResponse updateProduct(Long productId, ProductRequest req, Merchant actingMerchant) {
+        validateProductRequest(req);
+
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
 
@@ -104,6 +108,15 @@ public class ProductService {
         }
 
         productRepository.delete(product);
+    }
+
+    private void validateProductRequest(ProductRequest req) {
+        if (req.getPrice() < 0) {
+            throw new IllegalArgumentException("Price cannot be negative");
+        }
+        if (req.getStockCount() < 0) {
+            throw new IllegalArgumentException("Stock count cannot be negative");
+        }
     }
 
     // Mapper

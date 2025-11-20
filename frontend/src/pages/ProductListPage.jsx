@@ -95,8 +95,8 @@ export default function ProductListPage() {
       {/* Toolbar */}
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">All Products</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-xl font-semibold">All Products</h1>
+          <p className="text-sm section-meta">
             Filter, sort and browse the catalog
           </p>
         </div>
@@ -107,14 +107,14 @@ export default function ProductListPage() {
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search products…"
             aria-label="Search products"
-            className="h-10 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="field h-10 text-sm"
           />
 
           <select
             value={catId}
             onChange={(e) => setCatId(e.target.value)}
             aria-label="Filter by category"
-            className="h-10 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="field h-10 text-sm"
           >
             <option value="">All categories</option>
             {cats.map((c) => (
@@ -128,7 +128,7 @@ export default function ProductListPage() {
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             aria-label="Sort products"
-            className="h-10 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="field h-10 text-sm"
           >
             <option value="newest">Newest</option>
             <option value="priceAsc">Price ↑</option>
@@ -141,10 +141,10 @@ export default function ProductListPage() {
       {/* Count chip */}
       {!loading && (
         <div
-          className="mb-4 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-600"
+          className="mb-4 inline-flex items-center gap-2 chip"
           aria-live="polite"
         >
-          <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />
           {filtered.length} result{filtered.length !== 1 ? "s" : ""}
         </div>
       )}
@@ -155,7 +155,7 @@ export default function ProductListPage() {
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="h-64 animate-pulse rounded-2xl border border-gray-200 bg-gray-50"
+              className="h-64 animate-pulse rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-tertiary)]"
               role="status"
               aria-label="Loading product"
             />
@@ -163,7 +163,7 @@ export default function ProductListPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div
-          className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center text-gray-500"
+          className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-subtle)] bg-[var(--surface-card)] p-10 text-center section-meta"
           role="note"
           aria-label="No products message"
         >

@@ -54,11 +54,11 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto mt-12 bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
-      <h1 className="text-2xl font-semibold mb-2 text-gray-900 text-center">
+    <div className="max-w-lg mx-auto mt-12 token-card p-8">
+      <h1 className="text-2xl font-semibold mb-1 text-center">
         Create your account
       </h1>
-      <p className="text-sm text-gray-500 text-center mb-6">
+      <p className="text-sm section-meta text-center mb-6">
         It takes less than a minute.
       </p>
 
@@ -71,28 +71,28 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit} className="space-y-4 text-sm">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-700">
+            <label className="mb-1 block text-xs font-medium section-meta">
               Name
             </label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="field w-full"
               placeholder="Name"
               required
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-700">
+            <label className="mb-1 block text-xs font-medium section-meta">
               Surname
             </label>
             <input
               name="surname"
               value={form.surname}
               onChange={handleChange}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="field w-full"
               placeholder="Surname"
               required
             />
@@ -100,21 +100,21 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">
+          <label className="mb-1 block text-xs font-medium section-meta">
             Username
           </label>
           <input
             name="username"
             value={form.username}
             onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="field w-full"
             placeholder="Username"
             required
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">
+          <label className="mb-1 block text-xs font-medium section-meta">
             Password
           </label>
           <div className="flex gap-2">
@@ -123,7 +123,7 @@ export default function RegisterPage() {
               name="password"
               value={form.password}
               onChange={handleChange}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="field w-full"
               placeholder="Password"
               required
               minLength={5}
@@ -131,7 +131,7 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => setShowPass((s) => !s)}
-              className="shrink-0 rounded-lg border border-gray-300 px-3 text-xs text-gray-700 hover:bg-gray-50"
+              className="btn btn-secondary text-xs h-[40px] px-3"
             >
               {showPass ? "Hide" : "Show"}
             </button>
@@ -140,14 +140,14 @@ export default function RegisterPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-700">
+            <label className="mb-1 block text-xs font-medium section-meta">
               Account Type
             </label>
             <select
               name="type"
               value={form.type}
               onChange={handleChange}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="field w-full"
             >
               <option value="CUSTOMER">Customer</option>
               <option value="MERCHANT">Merchant</option>
@@ -156,14 +156,14 @@ export default function RegisterPage() {
 
           {form.type === "MERCHANT" && (
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-700">
+              <label className="mb-1 block text-xs font-medium section-meta">
                 Company Name
               </label>
               <input
                 name="companyName"
                 value={form.companyName}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="field w-full"
                 placeholder="Your company"
                 required
               />
@@ -174,9 +174,7 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={submitting}
-          className={`w-full rounded-lg px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 ${
-            submitting ? "bg-blue-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-          }`}
+          className="btn btn-primary w-full text-sm"
         >
           {submitting ? "Creating…" : "Register"}
         </button>

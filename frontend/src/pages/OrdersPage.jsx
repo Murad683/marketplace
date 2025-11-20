@@ -3,6 +3,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { getOrders, createOrders, cancelOrder } from "../api";
 
+const COMPLETED_STATUSES = new Set([
+  "DELIVERED",
+  "REJECT_BY_CUSTOMER",
+  "REJECT_BY_MERCHANT",
+]);
+
 export default function OrdersPage() {
   const { auth, isCustomer } = useAuth();
   const [orders, setOrders] = useState([]);
@@ -10,6 +16,8 @@ export default function OrdersPage() {
   // UI states: reason text + “expanded” (input açıq?) per order
   const [reasons, setReasons] = useState({});     // { [orderId]: string }
   const [expanded, setExpanded] = useState({});   // { [orderId]: boolean }
+  const [sortBy, setSortBy] = useState("newest");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   const load = () => {
     setLoading(true);
@@ -56,9 +64,51 @@ export default function OrdersPage() {
     }
   };
 
+  const filteredAndSorted = useMemo(() => {
+    let list = orders;
+    if (statusFilter !== "ALL") {
+      list = list.filter((o) => o.status === statusFilter);
+    }
+
+    const cmpDateDesc = (a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
+    const cmpDateAsc = (a, b) =>
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+
+    const cmpTotal = (dir) => (a, b) =>
+      (dir === "desc" ? b.totalAmount : a.totalAmount) -
+      (dir === "desc" ? a.totalAmount : b.totalAmount);
+
+    const listCopy = [...list];
+    switch (sortBy) {
+      case "oldest":
+        listCopy.sort(cmpDateAsc);
+        break;
+      case "amount_desc":
+        listCopy.sort(cmpTotal("desc"));
+        break;
+      case "amount_asc":
+        listCopy.sort(cmpTotal("asc"));
+        break;
+      case "newest":
+      default:
+        listCopy.sort(cmpDateDesc);
+        break;
+    }
+    return listCopy;
+  }, [orders, sortBy, statusFilter]);
+
+  const activeOrders = filteredAndSorted.filter(
+    (o) => !COMPLETED_STATUSES.has(o.status)
+  );
+  const historyOrders = filteredAndSorted.filter((o) =>
+    COMPLETED_STATUSES.has(o.status)
+  );
+
   if (!isCustomer) {
     return (
-      <div className="max-w-md mx-auto mt-10 text-center text-gray-500 bg-white border rounded-2xl p-8 shadow-sm">
+      <div className="token-card max-w-md mx-auto mt-10 text-center p-8 section-meta">
         Only customers can view orders.
       </div>
     );
@@ -69,46 +119,75 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight">
             My Orders
           </h1>
-          <p className="text-sm text-gray-500">Orders created from your cart</p>
+          <p className="text-sm section-meta">Orders created from your cart</p>
         </div>
 
-        <button
-          onClick={handleCheckout}
-          className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-        >
-          Checkout (Create new Order)
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+          <div className="flex items-center gap-2">
+            <label className="text-xs section-meta">Filter</label>
+            <select
+              className="field text-sm"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="ALL">All</option>
+              <option value="CREATED">Created</option>
+              <option value="ACCEPTED">Accepted</option>
+              <option value="DELIVERED">Delivered</option>
+              <option value="REJECT_BY_CUSTOMER">Cancelled</option>
+              <option value="REJECT_BY_MERCHANT">Rejected by merchant</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-xs section-meta">Sort</label>
+            <select
+              className="field text-sm"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="amount_desc">Amount: High → Low</option>
+              <option value="amount_asc">Amount: Low → High</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm">
-        {loading ? (
-          <div className="p-10 text-center text-gray-500">Loading…</div>
-        ) : orders.length === 0 ? (
-          <div className="p-10 text-center text-gray-500">
-            You have no orders yet.
-          </div>
-        ) : (
-          <ul className="divide-y divide-gray-100">
-            {orders.map((o) => (
-              <OrderRow
-                key={o.orderId}
-                order={o}
-                reason={reasons[o.orderId] || ""}
-                setReason={(v) =>
-                  setReasons((r) => ({ ...r, [o.orderId]: v }))
-                }
-                expanded={!!expanded[o.orderId]}
-                onOpen={() => openCancel(o.orderId)}
-                onClose={() => closeCancel(o.orderId)}
-                onConfirm={() => onCancel(o.orderId)}
-              />
-            ))}
-          </ul>
-        )}
+      <div className="space-y-6">
+        <OrdersSection
+          title="Active"
+          loading={loading}
+          emptyText="You have no active orders."
+          items={activeOrders}
+          renderItem={(o) => (
+            <OrderRow
+              key={o.orderId}
+              order={o}
+              reason={reasons[o.orderId] || ""}
+              setReason={(v) =>
+                setReasons((r) => ({ ...r, [o.orderId]: v }))
+              }
+              expanded={!!expanded[o.orderId]}
+              onOpen={() => openCancel(o.orderId)}
+              onClose={() => closeCancel(o.orderId)}
+              onConfirm={() => onCancel(o.orderId)}
+            />
+          )}
+        />
+
+        <OrdersSection
+          title="History"
+          loading={loading}
+          emptyText="No completed orders yet."
+          items={historyOrders}
+          renderItem={(o) => <OrderRow key={o.orderId} order={o} readOnly />}
+        />
       </div>
     </div>
   );
@@ -116,7 +195,36 @@ export default function OrdersPage() {
 
 /* ---------- Subcomponents ---------- */
 
-function OrderRow({ order, reason, setReason, expanded, onOpen, onClose, onConfirm }) {
+function OrdersSection({ title, loading, items, emptyText, renderItem }) {
+  return (
+    <div className="token-card">
+      <div className="section-head px-4 py-3 flex items-center justify-between rounded-t-[inherit]">
+        <h2 className="text-sm font-semibold">{title}</h2>
+        <span className="text-xs section-meta">
+          {items.length} item{items.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      {loading ? (
+        <div className="p-8 text-center section-meta">Loading…</div>
+      ) : items.length === 0 ? (
+        <div className="p-8 text-center section-meta text-sm">{emptyText}</div>
+      ) : (
+        <ul className="order-list">{items.map(renderItem)}</ul>
+      )}
+    </div>
+  );
+}
+
+function OrderRow({
+  order,
+  reason,
+  setReason,
+  expanded,
+  onOpen,
+  onClose,
+  onConfirm,
+  readOnly = false,
+}) {
   const canCancel = useMemo(() => {
     return (
       order.status !== "DELIVERED" &&
@@ -127,56 +235,58 @@ function OrderRow({ order, reason, setReason, expanded, onOpen, onClose, onConfi
 
   return (
     <li className="p-4 sm:p-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         {/* LEFT: info */}
         <div className="min-w-0">
           <div className="flex items-start gap-3">
-            <h3 className="font-medium text-gray-900 truncate">
-              {order.productName}
-            </h3>
+            <h3 className="font-medium truncate">{order.productName}</h3>
             <StatusPill status={order.status} />
           </div>
 
-          <div className="mt-1 text-sm text-gray-600">
+          <div className="mt-1 text-sm section-meta">
             <span className="mr-4">
-              Count: <b className="text-gray-800">{order.count}</b>
+              Count: <b>{order.count}</b>
             </span>
             <span>
-              Total: <b className="text-gray-800">{formatCurrency(order.totalAmount)}</b>
+              Total: <b>{formatCurrency(order.totalAmount)}</b>
             </span>
           </div>
 
-          <div className="mt-1 text-xs text-gray-400">
+          <div className="mt-1 text-xs section-meta">
             Placed: {formatDate(order.createdAt)}
           </div>
 
           {!!order.rejectReason && (
-            <div className="mt-2 text-xs text-red-600">
+            <div className="mt-2 text-xs section-meta">
               Reason: {order.rejectReason}
             </div>
           )}
         </div>
 
         {/* RIGHT: Cancel flow */}
-        <div className="w-full lg:w-96">
-          {canCancel ? (
+        <div className="w-full lg:w-96 flex lg:justify-end">
+          {readOnly ? (
+            <div className="text-sm section-meta lg:text-right w-full lg:w-auto">
+              This order is completed.
+            </div>
+          ) : canCancel ? (
             !expanded ? (
               <button
                 onClick={onOpen}
-                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                className="btn btn-secondary text-sm lg:ml-auto"
               >
                 Cancel order
               </button>
             ) : (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                <div className="text-xs font-medium text-amber-800 mb-2">
+              <div className="callout p-3 w-full max-w-md lg:ml-auto">
+                <div className="text-xs font-medium mb-2">
                   Please provide a reason to cancel:
                 </div>
                 <input
-                  className="w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  className="field w-full text-sm"
                   placeholder="Reason to cancel…"
                   value={reason}
-                  onChange={(e) => setReason(e.target.value)}
+                  onChange={(e) => setReason && setReason(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") onConfirm();
                     if (e.key === "Escape") onClose();
@@ -186,28 +296,24 @@ function OrderRow({ order, reason, setReason, expanded, onOpen, onClose, onConfi
                   <button
                     onClick={onConfirm}
                     disabled={!reason.trim()}
-                    className={`inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium text-white shadow-sm ${
-                      reason.trim()
-                        ? "bg-red-600 hover:bg-red-700 focus:ring-red-500/40"
-                        : "bg-red-300 cursor-not-allowed"
-                    } focus:outline-none focus:ring-2`}
+                    className="btn btn-primary text-sm"
                   >
                     Confirm cancel
                   </button>
                   <button
                     onClick={onClose}
-                    className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                    className="btn btn-secondary text-sm"
                   >
                     Keep order
                   </button>
                 </div>
-                <div className="mt-1 text-[11px] text-amber-700/80">
+                <div className="mt-1 text-[11px] section-meta">
                   Tip: Press <b>Enter</b> to confirm or <b>Esc</b> to close.
                 </div>
               </div>
             )
           ) : (
-            <div className="text-sm text-gray-500">This order can’t be cancelled.</div>
+            <div className="text-sm section-meta">This order can’t be cancelled.</div>
           )}
         </div>
       </div>
@@ -216,12 +322,8 @@ function OrderRow({ order, reason, setReason, expanded, onOpen, onClose, onConfi
 }
 
 function StatusPill({ status }) {
-  const { bg, text } = statusColors(status);
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${bg} ${text} ring-1 ring-inset ring-black/5`}
-      title={status}
-    >
+    <span className="status-pill" data-tone={statusTone(status)} title={status}>
       {labelForStatus(status)}
     </span>
   );
@@ -251,20 +353,20 @@ function formatDate(isoLike) {
   }
 }
 
-function statusColors(status) {
+function statusTone(status) {
   switch (status) {
     case "CREATED":
-      return { bg: "bg-gray-100", text: "text-gray-700" };
+      return "new";
     case "ACCEPTED":
-      return { bg: "bg-blue-100", text: "text-blue-700" };
+      return "progress";
     case "DELIVERED":
-      return { bg: "bg-emerald-100", text: "text-emerald-700" };
+      return "success";
     case "REJECT_BY_CUSTOMER":
-      return { bg: "bg-amber-100", text: "text-amber-700" };
+      return "danger";
     case "REJECT_BY_MERCHANT":
-      return { bg: "bg-rose-100", text: "text-rose-700" };
+      return "danger";
     default:
-      return { bg: "bg-gray-100", text: "text-gray-700" };
+      return "new";
   }
 }
 

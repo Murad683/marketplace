@@ -27,7 +27,7 @@ export default function ImageGallery({ productId, photoIds = [] }) {
 
   if (!hasImages) {
     return (
-      <div className="w-full h-80 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/60 flex items-center justify-center text-gray-400 dark:text-zinc-500">
+      <div className="w-full h-80 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-tertiary)] flex items-center justify-center section-meta">
         No image
       </div>
     );
@@ -38,17 +38,17 @@ export default function ImageGallery({ productId, photoIds = [] }) {
   return (
     <div className="space-y-3">
       {/* Main image + arrows */}
-      <div className="relative">
+      <div className="relative token-card p-2">
         <img
           src={mainSrc}
           alt="product"
-          className="w-full h-80 object-cover rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
+          className="w-full h-80 object-cover rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--surface-card)]"
         />
 
         {/* Left arrow */}
         <button
           onClick={prev}
-          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 px-2 py-1 text-gray-700 dark:text-zinc-100 hover:bg-white dark:hover:bg-zinc-800"
+          className="absolute left-3 top-1/2 -translate-y-1/2 btn btn-secondary px-2 py-1 text-sm"
           aria-label="Previous image"
         >
           ‹
@@ -57,7 +57,7 @@ export default function ImageGallery({ productId, photoIds = [] }) {
         {/* Right arrow */}
         <button
           onClick={next}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 px-2 py-1 text-gray-700 dark:text-zinc-100 hover:bg-white dark:hover:bg-zinc-800"
+          className="absolute right-3 top-1/2 -translate-y-1/2 btn btn-secondary px-2 py-1 text-sm"
           aria-label="Next image"
         >
           ›
@@ -73,11 +73,10 @@ export default function ImageGallery({ productId, photoIds = [] }) {
             <button
               key={pid}
               onClick={() => setIdx(i)}
-              className={`relative rounded-lg overflow-hidden border ${
-                active
-                  ? "border-blue-500 ring-2 ring-blue-300"
-                  : "border-gray-200 dark:border-zinc-700"
-              }`}
+              className="relative rounded-[var(--radius-sm)] overflow-hidden border border-[var(--border-subtle)]"
+              style={{
+                boxShadow: active ? "0 0 0 3px var(--accent-soft)" : "none",
+              }}
             >
               <img
                 src={src}
