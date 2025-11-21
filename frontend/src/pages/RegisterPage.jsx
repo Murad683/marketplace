@@ -5,7 +5,7 @@ import { registerRequest } from "../api";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
-    username: "",
+    email: "",
     password: "",
     name: "",
     surname: "",
@@ -28,7 +28,7 @@ export default function RegisterPage() {
     setSubmitting(true);
     try {
       const payload = {
-        username: form.username.trim(),
+        email: form.email.trim(),
         password: form.password,
         name: form.name.trim(),
         surname: form.surname.trim(),
@@ -40,14 +40,23 @@ export default function RegisterPage() {
       saveAuth({
         token: data.token,
         tokenType: data.tokenType,
-        username: data.username || payload.username,
+        email: data.email || payload.email,
         type: data.type || payload.type,
       });
       navigate("/");
       window.location.reload();
     } catch (err) {
-      setError("Registration failed. Please check fields and try again.");
-      console.error(err);
+      // Try to surface backend message if available
+      let msg = "Registration failed. Please check fields and try again.";
+      if (err?.message) {
+        try {
+          const parsed = JSON.parse(err.message);
+          msg = parsed?.message || msg;
+        } catch {
+          msg = err.message || msg;
+        }
+      }
+      setError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -101,14 +110,15 @@ export default function RegisterPage() {
 
         <div>
           <label className="mb-1 block text-xs font-medium section-meta">
-            Username
+            Email
           </label>
           <input
-            name="username"
-            value={form.username}
+            type="email"
+            name="email"
+            value={form.email}
             onChange={handleChange}
             className="field w-full"
-            placeholder="Username"
+            placeholder="Email"
             required
           />
         </div>

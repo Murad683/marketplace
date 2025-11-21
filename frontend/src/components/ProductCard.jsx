@@ -1,10 +1,17 @@
 // src/components/ProductCard.jsx
 import { Link } from "react-router-dom";
-import { productPhotoUrl } from "../api";
-
+import { BASE_URL } from "../api";
 export default function ProductCard({ product, size = "md", isNew }) {
-  const firstId =
-    product?.photoIds && product.photoIds.length > 0 ? product.photoIds[0] : null;
+  const resolvePhoto = (url) => {
+    if (!url) return null;
+    if (url.startsWith("http")) return url;
+    const cleaned = url.replace(/^\/?uploads\//, "");
+    return `${BASE_URL}/uploads/${cleaned}`;
+  };
+
+  const firstUrl =
+    product?.photoUrls && product.photoUrls.length > 0 ? product.photoUrls[0] : null;
+  const resolvedFirst = resolvePhoto(firstUrl);
 
   const sizeMap = {
     sm: { aspect: "aspect-[4/3]", bodyMinH: "min-h-[110px]" },
@@ -54,9 +61,9 @@ export default function ProductCard({ product, size = "md", isNew }) {
         className="relative block"
       >
         <div className={`${S.aspect} w-full overflow-hidden`}>
-          {firstId ? (
+          {resolvedFirst ? (
             <img
-              src={productPhotoUrl(product.id, firstId)}
+              src={resolvedFirst}
               alt={product?.name || "Product image"}
               loading="lazy"
               className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.02]"

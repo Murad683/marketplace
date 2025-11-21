@@ -46,22 +46,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         final String token = authHeader.substring(7); // after "Bearer "
-        String username;
+        String email;
         try {
-            username = jwtService.extractUsername(token);
+            email = jwtService.extractEmail(token);
         } catch (Exception e) {
             log.debug("JWT parse failed: {}", e.getMessage());
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            Optional<User> userOpt = userRepository.findByUsername(username);
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            Optional<User> userOpt = userRepository.findByEmail(email);
 
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
 
-                if (jwtService.isTokenValid(token, user.getUsername())) {
+                if (jwtService.isTokenValid(token, user.getEmail())) {
                     UserType type = user.getType();
                     String roleName = "ROLE_" + (type != null ? type.name() : "CUSTOMER");
 

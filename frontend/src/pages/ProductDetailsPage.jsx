@@ -6,6 +6,7 @@ import {
   addToWishlist,
   removeFromWishlist,
 } from "../api";
+import { BASE_URL } from "../api";
 import { useAuth } from "../hooks/useAuth";
 import ImageGallery from "../components/ImageGallery";
 
@@ -133,7 +134,7 @@ export default function ProductDetailsPage() {
       <div className="token-card p-6 lg:p-8 grid md:grid-cols-2 gap-6 lg:gap-8">
         {/* LEFT: images */}
         <div>
-          <ImageGallery productId={product.id} photoIds={product.photoIds || []} />
+          <ImageGallery photoUrls={product.photoUrls || []} />
         </div>
 
         {/* RIGHT: info */}

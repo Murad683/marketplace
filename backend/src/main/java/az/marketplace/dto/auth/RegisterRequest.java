@@ -4,6 +4,7 @@ import az.marketplace.entity.enums.UserType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import jakarta.validation.constraints.Email;
 
 @Data
 @Builder
@@ -12,7 +13,8 @@ import lombok.*;
 public class RegisterRequest {
 
     @NotBlank
-    private String username;
+    @Email
+    private String email;
 
     @NotBlank
     private String password;

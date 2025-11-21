@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -88,6 +90,7 @@ public class CartService {
         // 4. persist
         item.setCount(desiredTotal);
         item = cartItemRepository.save(item);
+        cart.setUpdatedAt(LocalDateTime.now());
 
         return toCartItemResponse(item);
     }
@@ -103,19 +106,22 @@ public class CartService {
             throw new AccessDeniedException("Item does not belong to your cart");
         }
 
+        cart.setUpdatedAt(LocalDateTime.now());
         cartItemRepository.delete(item);
     }
 
     private CartItemResponse toCartItemResponse(CartItem item) {
-        Double unitPrice = item.getProduct().getPrice();
-        Integer count = item.getCount();
+        BigDecimal unitPrice = item.getProduct().getPrice() != null
+                ? item.getProduct().getPrice()
+                : BigDecimal.ZERO;
+        int count = item.getCount() == null ? 0 : item.getCount();
         return CartItemResponse.builder()
                 .itemId(item.getId())
                 .productId(item.getProduct().getId())
                 .productName(item.getProduct().getName())
                 .count(count)
                 .pricePerUnit(unitPrice)
-                .totalPrice(unitPrice * count)
+                .totalPrice(unitPrice.multiply(BigDecimal.valueOf(count)))
                 .build();
     }
 }

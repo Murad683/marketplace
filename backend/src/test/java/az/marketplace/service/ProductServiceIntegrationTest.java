@@ -19,6 +19,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +52,7 @@ public class ProductServiceIntegrationTest {
     void setup() {
         // 1. User yarat (Merchant üçün)
         User user = User.builder()
-                .username("merchantUser")
+                .email("merchantUser@example.com")
                 .password("encodedpass") // test üçün hər şey olar
                 .name("Test")
                 .surname("Seller")
@@ -78,17 +79,17 @@ public class ProductServiceIntegrationTest {
         ProductRequest req = new ProductRequest();
         req.setName("PlayStation 5");
         req.setDetails("Digital Edition");
-        req.setPrice(999.99);
+        req.setPrice(new BigDecimal("999.99"));
         req.setStockCount(7);
         req.setCategoryId(category.getId());
 
-        ProductResponse response = productService.createProduct(req, merchant);
+        ProductResponse response = productService.createProduct(req, null, merchant);
 
         assertThat(response.getId()).isNotNull();
         assertThat(response.getName()).isEqualTo("PlayStation 5");
         assertThat(response.getCategoryName()).isEqualTo("Test Category");
         assertThat(response.getMerchantCompanyName()).isEqualTo("Test Seller LLC");
-        assertThat(response.getPhotoIds()).isEmpty();
+        assertThat(response.getPhotoUrls()).isEmpty();
 
         Product fromDb = productRepository.findById(response.getId()).orElseThrow();
         assertThat(fromDb.getName()).isEqualTo("PlayStation 5");
@@ -100,7 +101,7 @@ public class ProductServiceIntegrationTest {
         Product p = Product.builder()
                 .name("BMW X5")
                 .details("Black, 2022, full package")
-                .price(150000.0)
+                .price(new BigDecimal("150000.00"))
                 .stockCount(3)
                 .merchant(merchant)
                 .category(category)

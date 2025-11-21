@@ -1,6 +1,7 @@
 package az.marketplace.dto.cart;
 
 import lombok.*;
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -15,6 +16,6 @@ public class CartItemResponse {
 
     private Integer count;
 
-    private Double pricePerUnit;
-    private Double totalPrice;
+    private BigDecimal pricePerUnit;
+    private BigDecimal totalPrice;
 }

@@ -3,7 +3,7 @@
 const AUTH_KEY = "auth";
 
 export function saveAuth(data) {
-  // data: { token, tokenType, username, type }
+  // data: { token, tokenType, email, type }
   localStorage.setItem(AUTH_KEY, JSON.stringify(data));
 }
 

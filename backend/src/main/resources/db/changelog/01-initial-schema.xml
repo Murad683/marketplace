@@ -1,0 +1,306 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- Initial normalized schema -->
+    <changeSet id="01-initial-schema" author="codex">
+
+        <!-- USERS -->
+        <createTable tableName="users">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="surname" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- MERCHANTS -->
+        <createTable tableName="merchants">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="company_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="merchants"
+                baseColumnNames="user_id"
+                constraintName="fk_merchants_users"
+                referencedTableName="users"
+                referencedColumnNames="id"/>
+
+        <!-- CUSTOMERS -->
+        <createTable tableName="customers">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="balance" type="DECIMAL(19,2)" defaultValueNumeric="0.00">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="customers"
+                baseColumnNames="user_id"
+                constraintName="fk_customers_users"
+                referencedTableName="users"
+                referencedColumnNames="id"/>
+
+        <!-- CATEGORIES -->
+        <createTable tableName="categories">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+
+        <!-- PRODUCTS -->
+        <createTable tableName="products">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="merchant_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="details" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="stock_count" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="products"
+                baseColumnNames="merchant_id"
+                constraintName="fk_products_merchants"
+                referencedTableName="merchants"
+                referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+                baseTableName="products"
+                baseColumnNames="category_id"
+                constraintName="fk_products_categories"
+                referencedTableName="categories"
+                referencedColumnNames="id"/>
+
+        <!-- PRODUCT_PHOTOS -->
+        <createTable tableName="product_photos">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="photo_url" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="product_photos"
+                baseColumnNames="product_id"
+                constraintName="fk_product_photos_products"
+                referencedTableName="products"
+                referencedColumnNames="id"/>
+
+        <!-- CARTS -->
+        <createTable tableName="carts">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="carts"
+                baseColumnNames="user_id"
+                constraintName="fk_carts_users"
+                referencedTableName="users"
+                referencedColumnNames="id"/>
+
+        <!-- CART_ITEMS -->
+        <createTable tableName="cart_items">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="cart_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="count" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="cart_items"
+                baseColumnNames="cart_id"
+                constraintName="fk_cart_items_carts"
+                referencedTableName="carts"
+                referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+                baseTableName="cart_items"
+                baseColumnNames="product_id"
+                constraintName="fk_cart_items_products"
+                referencedTableName="products"
+                referencedColumnNames="id"/>
+
+        <!-- ORDERS -->
+        <createTable tableName="orders">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="customer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_amount" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="count" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="orders"
+                baseColumnNames="customer_id"
+                constraintName="fk_orders_customers"
+                referencedTableName="customers"
+                referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+                baseTableName="orders"
+                baseColumnNames="product_id"
+                constraintName="fk_orders_products"
+                referencedTableName="products"
+                referencedColumnNames="id"/>
+
+        <!-- WISH_LIST -->
+        <createTable tableName="wish_list">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="customer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="wish_list"
+                baseColumnNames="customer_id"
+                constraintName="fk_wishlist_customers"
+                referencedTableName="customers"
+                referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+                baseTableName="wish_list"
+                baseColumnNames="product_id"
+                constraintName="fk_wishlist_products"
+                referencedTableName="products"
+                referencedColumnNames="id"/>
+
+        <addUniqueConstraint
+                tableName="wish_list"
+                columnNames="customer_id,product_id"
+                constraintName="uq_wishlist_customer_product"/>
+
+        <!-- NOTIFICATIONS (kept for existing feature set) -->
+        <createTable tableName="notifications">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="message" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_read" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="order_id" type="BIGINT"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="notifications"
+                baseColumnNames="order_id"
+                referencedTableName="orders"
+                referencedColumnNames="id"
+                constraintName="fk_notifications_orders"/>
+
+    </changeSet>
+
+</databaseChangeLog>

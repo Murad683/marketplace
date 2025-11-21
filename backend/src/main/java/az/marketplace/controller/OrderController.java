@@ -63,7 +63,7 @@ public class OrderController {
     ) {
         Customer customer = currentUserService.getCurrentCustomerOrThrow();
         return ResponseEntity.ok(
-                orderService.cancelOrderByCustomer(customer, orderId, req.getReason())
+                orderService.cancelOrderByCustomer(customer, orderId)
         );
     }
 }

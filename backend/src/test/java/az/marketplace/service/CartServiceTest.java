@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,10 +35,10 @@ class CartServiceTest {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        user = User.builder().id(1L).username("murad").build();
+        user = User.builder().id(1L).email("murad@example.com").build();
         customer = Customer.builder().user(user).build();
         cart = Cart.builder().id(1L).user(user).build();
-        product = Product.builder().id(5L).name("Laptop").price(1000.0).build();
+        product = Product.builder().id(5L).name("Laptop").price(new BigDecimal("1000.00")).build();
     }
 
     @Test

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +21,10 @@ class OrderServiceTest {
     private CartItemRepository cartItemRepository;
     @Mock
     private OrderRepository orderRepository;
+    @Mock
+    private ProductRepository productRepository;
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private OrderService orderService;
@@ -32,9 +37,9 @@ class OrderServiceTest {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        user = User.builder().id(1L).username("murad").build();
+        user = User.builder().id(1L).email("murad@example.com").build();
         customer = Customer.builder().id(1L).user(user).build();
-        product = Product.builder().id(5L).price(100.0).name("Phone").build();
+        product = Product.builder().id(5L).price(new BigDecimal("100.00")).name("Phone").build();
         cart = Cart.builder().id(3L).user(user).build();
     }
 
@@ -48,7 +53,7 @@ class OrderServiceTest {
         var orders = orderService.createOrdersFromCart(customer);
 
         assertEquals(1, orders.size());
-        assertEquals(200.0, orders.get(0).getTotalAmount());
+        assertEquals(new BigDecimal("200.00"), orders.get(0).getTotalAmount());
         verify(cartItemRepository, times(1)).deleteAll(any());
     }
 }

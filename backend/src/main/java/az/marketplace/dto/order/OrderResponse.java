@@ -4,6 +4,7 @@ import az.marketplace.entity.enums.OrderStatus;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -17,11 +18,9 @@ public class OrderResponse {
     private String productName;
 
     private Integer count;
-    private Double totalAmount;
+    private BigDecimal totalAmount;
 
     private OrderStatus status;
-
-    private String rejectReason;
 
     private LocalDateTime createdAt;
 }

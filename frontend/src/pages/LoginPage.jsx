@@ -4,7 +4,7 @@ import { saveAuth } from "../auth";
 import { loginRequest } from "../api";
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [showPass, setShowPass] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -19,14 +19,14 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const data = await loginRequest({
-        username: form.username.trim(),
+        email: form.email.trim(),
         password: form.password,
       });
 
       saveAuth({
         token: data.token,
         tokenType: data.tokenType,
-        username: data.username || form.username,
+        email: data.email || form.email,
         type: data.type || "CUSTOMER",
       });
 
@@ -34,7 +34,7 @@ export default function LoginPage() {
       window.location.reload();
     } catch (err) {
       console.error(err);
-      setError("Invalid username or password.");
+      setError("Invalid email or password.");
     } finally {
       setSubmitting(false);
     }
@@ -55,9 +55,10 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4 text-sm">
         <input
-          name="username"
-          placeholder="Username"
-          value={form.username}
+          name="email"
+          placeholder="Email"
+          type="email"
+          value={form.email}
           onChange={handleChange}
           className="field w-full"
           required

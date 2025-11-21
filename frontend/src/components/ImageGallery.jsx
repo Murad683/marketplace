@@ -1,17 +1,24 @@
 import { useEffect, useState, useCallback } from "react";
-
-export default function ImageGallery({ productId, photoIds = [] }) {
+import { BASE_URL } from "../api";
+export default function ImageGallery({ photoUrls = [] }) {
   const [idx, setIdx] = useState(0);
 
-  const hasImages = photoIds.length > 0;
+  const hasImages = photoUrls.length > 0;
+
+  const resolvePhoto = (src) => {
+    if (!src) return "";
+    if (src.startsWith("http")) return src;
+    const cleaned = src.replace(/^\/?uploads\//, "");
+    return `${BASE_URL}/uploads/${cleaned}`;
+  };
 
   const next = useCallback(
-    () => setIdx((i) => (i + 1) % Math.max(photoIds.length, 1)),
-    [photoIds.length]
+    () => setIdx((i) => (i + 1) % Math.max(photoUrls.length, 1)),
+    [photoUrls.length]
   );
   const prev = useCallback(
-    () => setIdx((i) => (i - 1 + Math.max(photoIds.length, 1)) % Math.max(photoIds.length, 1)),
-    [photoIds.length]
+    () => setIdx((i) => (i - 1 + Math.max(photoUrls.length, 1)) % Math.max(photoUrls.length, 1)),
+    [photoUrls.length]
   );
 
   // Klaviatura oxları
@@ -33,7 +40,7 @@ export default function ImageGallery({ productId, photoIds = [] }) {
     );
   }
 
-  const mainSrc = `http://localhost:8080/products/${productId}/photos/${photoIds[idx]}`;
+  const mainSrc = resolvePhoto(photoUrls[idx]);
 
   return (
     <div className="space-y-3">
@@ -66,12 +73,12 @@ export default function ImageGallery({ productId, photoIds = [] }) {
 
       {/* Thumbnails */}
       <div className="grid grid-cols-4 gap-3">
-        {photoIds.map((pid, i) => {
-          const src = `http://localhost:8080/products/${productId}/photos/${pid}`;
+        {photoUrls.map((src, i) => {
           const active = i === idx;
+          const resolved = resolvePhoto(src);
           return (
             <button
-              key={pid}
+              key={`${src}-${i}`}
               onClick={() => setIdx(i)}
               className="relative rounded-[var(--radius-sm)] overflow-hidden border border-[var(--border-subtle)]"
               style={{
@@ -79,7 +86,7 @@ export default function ImageGallery({ productId, photoIds = [] }) {
               }}
             >
               <img
-                src={src}
+                src={resolved}
                 alt={`thumb-${i}`}
                 className="w-full h-20 object-cover"
               />

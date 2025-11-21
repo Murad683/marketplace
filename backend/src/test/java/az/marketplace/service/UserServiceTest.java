@@ -41,14 +41,14 @@ class UserServiceTest {
     @Test
     void register_shouldHashPasswordAndSaveUser() {
         RegisterRequest req = RegisterRequest.builder()
-                .username("murad")
+                .email("murad@example.com")
                 .password("12345")
                 .name("Murad")
                 .surname("Mammadov")
                 .type(UserType.CUSTOMER)
                 .build();
 
-        when(userRepository.existsByUsername("murad")).thenReturn(false);
+        when(userRepository.existsByEmail("murad@example.com")).thenReturn(false);
         when(passwordEncoder.encode("12345")).thenReturn("hashed");
         when(jwtService.generateToken(anyString(), any())).thenReturn("fake-jwt");
 

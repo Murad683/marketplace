@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -28,13 +29,13 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
 
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Email already in use");
         }
 
         // Yeni user yarat
         User user = User.builder()
-                .username(request.getUsername())
+                .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
                 .surname(request.getSurname())
@@ -60,7 +61,7 @@ public class AuthService {
 
             Customer customer = Customer.builder()
                     .user(user)
-                    .balance(0.0)
+                    .balance(BigDecimal.ZERO)
                     .build();
 
             customerRepository.save(customer);
@@ -75,12 +76,12 @@ public class AuthService {
             throw new IllegalArgumentException("Unsupported user type");
         }
 
-        String token = jwtService.generateToken(user.getUsername(), user.getType());
+        String token = jwtService.generateToken(user.getEmail(), user.getType());
 
         return AuthResponse.builder()
                 .token(token)
                 .tokenType("Bearer")
-                .username(user.getUsername())
+                .email(user.getEmail())
                 .type(user.getType().name()) // CUSTOMER / MERCHANT
                 .build();
     }
@@ -88,20 +89,20 @@ public class AuthService {
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
 
-        User user = userRepository.findByUsername(request.getUsername())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         boolean passwordOk = passwordEncoder.matches(request.getPassword(), user.getPassword());
         if (!passwordOk) {
-            throw new AccessDeniedException("Invalid username or password");
+            throw new AccessDeniedException("Invalid email or password");
         }
 
-        String token = jwtService.generateToken(user.getUsername(), user.getType());
+        String token = jwtService.generateToken(user.getEmail(), user.getType());
 
         return AuthResponse.builder()
                 .token(token)
                 .tokenType("Bearer")
-                .username(user.getUsername())
+                .email(user.getEmail())
                 .type(user.getType().name())
                 .build();
     }

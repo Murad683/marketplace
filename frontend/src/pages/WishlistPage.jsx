@@ -1,7 +1,7 @@
 // src/pages/WishlistPage.jsx
 import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { getWishlist, removeFromWishlist, productPhotoUrl } from "../api";
+import { getWishlist, removeFromWishlist, BASE_URL } from "../api";
 import { Link } from "react-router-dom";
 
 export default function WishlistPage() {
@@ -54,9 +54,11 @@ export default function WishlistPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
           {items.map((p) => {
             const img =
-              p.photoIds && p.photoIds.length > 0
-                ? productPhotoUrl(p.id, p.photoIds[0])
-                : null;
+              p.photoUrls && p.photoUrls.length > 0 ? p.photoUrls[0] : null;
+            const resolved =
+              img && !img.startsWith("http")
+                ? `${BASE_URL}/uploads/${img.replace(/^\/?uploads\//, "")}`
+                : img;
 
             return (
               <div
@@ -65,9 +67,9 @@ export default function WishlistPage() {
               >
                 <Link to={`/product/${p.id}`} className="block">
                   <div className="w-full h-36 bg-[var(--bg-tertiary)] flex items-center justify-center">
-                    {img ? (
+                    {resolved ? (
                       <img
-                        src={img}
+                        src={resolved}
                         alt={p.name}
                         className="object-contain w-full h-full"
                       />

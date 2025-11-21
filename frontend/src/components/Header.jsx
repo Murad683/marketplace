@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../contexts/ThemeContext";
+import NotificationBell from "./NotificationBell";
 
 export default function Header() {
   const { isLoggedIn, isCustomer, isMerchant, logout } = useAuth();
@@ -75,6 +76,10 @@ export default function Header() {
                 Orders
               </Link>
             </>
+          )}
+
+          {isLoggedIn && (
+            <NotificationBell />
           )}
 
           {isLoggedIn && (

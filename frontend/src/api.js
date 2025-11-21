@@ -1,6 +1,6 @@
 // src/api.js
 
-const BASE_URL = "http://localhost:8080";
+export const BASE_URL = "http://localhost:8080";
 
 /* ----------------------------------
    Low-level helpers
@@ -34,13 +34,13 @@ async function requestJson(path, { method = "GET", body, token } = {}) {
   return res.json();
 }
 
-async function requestFormData(path, { file, token } = {}) {
-  const formData = new FormData();
-  formData.append("file", file);
+async function requestForm(path, { method = "POST", formData, token } = {}) {
+  const headers = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE_URL}${path}`, {
-    method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    method,
+    headers,
     body: formData,
   });
 
@@ -59,15 +59,15 @@ async function requestFormData(path, { file, token } = {}) {
   return res.json();
 }
 
-// UI üçün şəkil URL helper-i
+// UI helper: server exposes redirect for stored photos if you need it
 export const productPhotoUrl = (productId, photoId) =>
   `${BASE_URL}/products/${productId}/photos/${photoId}`;
 
 /* ----------------------------------
    AUTH
 ---------------------------------- */
-export const loginRequest = ({ username, password }) =>
-  requestJson("/auth/login", { method: "POST", body: { username, password } });
+export const loginRequest = ({ email, password }) =>
+  requestJson("/auth/login", { method: "POST", body: { email, password } });
 
 export const registerRequest = (body) =>
   requestJson("/auth/register", { method: "POST", body });
@@ -80,11 +80,14 @@ export const getProducts = () => requestJson("/products");
 export const getProductById = (id) => requestJson(`/products/${id}`);
 
 export const createProduct = (productReq, auth) =>
-  requestJson("/products", {
-    method: "POST",
-    body: productReq,
-    token: auth?.token,
-  });
+  requestForm(
+    "/api/products",
+    {
+      method: "POST",
+      formData: productReq,
+      token: auth?.token,
+    }
+  );
 
 export const updateProduct = (productId, productReq, auth) =>
   requestJson(`/products/${productId}`, {
@@ -99,8 +102,18 @@ export const deleteProduct = (productId, auth) =>
     token: auth?.token,
   });
 
-export const uploadProductPhoto = (productId, file, auth) =>
-  requestFormData(`/products/${productId}/photos`, { file, token: auth?.token });
+export const addProductPhoto = (productId, photoUrl, auth) =>
+  requestForm(`/products/${productId}/photos`, {
+    method: "POST",
+    formData: (() => {
+      const fd = new FormData();
+      if (photoUrl instanceof File) {
+        fd.append("file", photoUrl);
+      }
+      return fd;
+    })(),
+    token: auth?.token,
+  });
 
 /* ----------------------------------
    CATEGORIES
@@ -213,6 +226,24 @@ export async function cancelOrder(orderId, reason, auth) {
     throw e;
   }
 }
+
+/* ----------------------------------
+   NOTIFICATIONS
+---------------------------------- */
+export const getNotifications = (auth) =>
+  requestJson("/api/notifications", { token: auth?.token });
+
+export const markNotificationRead = (id, auth) =>
+  requestJson(`/api/notifications/read/${id}`, {
+    method: "POST",
+    token: auth?.token,
+  });
+
+export const markAllNotificationsRead = (auth) =>
+  requestJson("/api/notifications/read-all", {
+    method: "POST",
+    token: auth?.token,
+  });
 
 // -- Paged products (server-side). Fallback: düz array gələrsə content=resp olacaq
 export async function getProductsPaged({

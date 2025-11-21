@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,6 +27,7 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public List<OrderResponse> createOrdersFromCart(Customer customer) {
@@ -49,8 +52,9 @@ public class OrderService {
 
         for (CartItem item : items) {
             Product p = item.getProduct();
-            int cnt = item.getCount();
-            double total = p.getPrice() * cnt;
+            int cnt = Optional.ofNullable(item.getCount()).orElse(0);
+            BigDecimal price = Optional.ofNullable(p.getPrice()).orElse(BigDecimal.ZERO);
+            BigDecimal total = price.multiply(BigDecimal.valueOf(cnt));
 
             Order o = Order.builder()
                     .customer(customer)
@@ -62,6 +66,7 @@ public class OrderService {
 
             o = orderRepository.save(o);
             createdOrders.add(o);
+            notificationService.notifyOrderCreated(o);
 
             p.setStockCount(Optional.ofNullable(p.getStockCount()).orElse(0) - cnt);
             touchedProducts.add(p);
@@ -69,6 +74,7 @@ public class OrderService {
 
         productRepository.saveAll(touchedProducts);
         cartItemRepository.deleteAll(items);
+        cart.setUpdatedAt(LocalDateTime.now());
 
         return createdOrders.stream().map(this::toOrderResponse).collect(Collectors.toList());
     }
@@ -108,15 +114,6 @@ public class OrderService {
         OrderStatus newStatus = req.getStatus();
         order.setStatus(newStatus);
 
-        if (newStatus == OrderStatus.REJECT_BY_MERCHANT || newStatus == OrderStatus.REJECT_BY_CUSTOMER) {
-            if (req.getRejectReason() != null && !req.getRejectReason().isBlank()) {
-                order.setRejectReason(req.getRejectReason());
-            }
-        } else {
-            // Moving away from rejection clears old reason
-            order.setRejectReason(null);
-        }
-
         if (newStatus == OrderStatus.REJECT_BY_MERCHANT
                 && prevStatus != OrderStatus.REJECT_BY_MERCHANT
                 && prevStatus != OrderStatus.REJECT_BY_CUSTOMER) {
@@ -130,7 +127,7 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse cancelOrderByCustomer(Customer customer, Long orderId, String reason) {
+    public OrderResponse cancelOrderByCustomer(Customer customer, Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("Order not found"));
 
@@ -154,7 +151,6 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.REJECT_BY_CUSTOMER);
-        order.setRejectReason(reason);
         // restore stock because customer cancelled
         Product product = order.getProduct();
         int currentStock = Optional.ofNullable(product.getStockCount()).orElse(0);
@@ -174,7 +170,6 @@ public class OrderService {
                 .count(o.getCount())
                 .totalAmount(o.getTotalAmount())
                 .status(o.getStatus())
-                .rejectReason(o.getRejectReason())
                 .createdAt(o.getCreatedAt())
                 .build();
     }

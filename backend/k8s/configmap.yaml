@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  DB_HOST: marketplace-postgres
+  DB_PORT: "5433"
+  DB_NAME: app_db
+  DB_USER: postgres
+  SPRING_PROFILES_ACTIVE: dev

@@ -8,6 +8,7 @@ import az.marketplace.service.CurrentUserService;
 import az.marketplace.service.ProductService;
 import az.marketplace.service.ProductPhotoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,11 +16,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
+import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/products")
+@RequestMapping({"/products", "/api/products"})
 public class ProductController {
 
     private final ProductService productService;
@@ -39,13 +41,14 @@ public class ProductController {
     }
 
     // POST /products → only MERCHANT
-    @PostMapping
+    @PostMapping(consumes = "multipart/form-data")
     @PreAuthorize("hasRole('MERCHANT')")
     public ResponseEntity<ProductResponse> create(
-            @Valid @RequestBody ProductRequest req
+            @Valid @ModelAttribute ProductRequest req,
+            @RequestParam(value = "images", required = false) List<MultipartFile> images
     ) {
         Merchant merchant = currentUserService.getCurrentMerchantOrThrow();
-        return ResponseEntity.ok(productService.createProduct(req, merchant));
+        return ResponseEntity.ok(productService.createProduct(req, images, merchant));
     }
 
     // PUT /products/{id} → only MERCHANT
@@ -74,20 +77,14 @@ public class ProductController {
     //  Body: multipart/form-data (field adı: "file")
     //  Cavab: { "id": <photoId> }
     // ============================
-    @PostMapping(
-            value = "/{productId}/photos",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
+    @PostMapping(value = "/{productId}/photos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MERCHANT')")
     public ResponseEntity<ProductPhotoResponse> uploadPhoto(
             @PathVariable Long productId,
             @RequestParam("file") MultipartFile file
     ) {
-        // sadəcə tokenin MERCHANT olduğunu yoxlayırıq
         currentUserService.getCurrentMerchantOrThrow();
-
-        ProductPhotoResponse response = productPhotoService.uploadPhoto(productId, file);
-
+        ProductPhotoResponse response = productPhotoService.addPhoto(productId, file);
         return ResponseEntity.ok(response);
     }
 
@@ -98,15 +95,15 @@ public class ProductController {
     //  <img src="http://localhost:8080/products/5/photos/12" />
     // ============================
     @GetMapping("/{productId}/photos/{photoId}")
-    public ResponseEntity<byte[]> getPhoto(
+    public ResponseEntity<Void> getPhoto(
             @PathVariable Long productId,
             @PathVariable Long photoId
     ) {
         var photo = productPhotoService.getPhotoOrThrow(productId, photoId);
 
         return ResponseEntity
-                .ok()
-                .contentType(MediaType.parseMediaType(photo.getContentType()))
-                .body(photo.getData());
+                .status(HttpStatus.FOUND)
+                .location(URI.create(photo.getPhotoUrl()))
+                .build();
     }
 }

@@ -23,10 +23,10 @@ public class Merchant {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @Column(nullable = false)
+    @Column(name = "company_name", nullable = false)
     private String companyName;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     // Merchant -> Product (OneToMany)
@@ -38,6 +38,8 @@ public class Merchant {
 
     @PrePersist
     private void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
     }
 }

@@ -4,6 +4,7 @@ import az.marketplace.entity.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "orders")
@@ -34,24 +35,19 @@ public class Order {
     private Integer count;
 
     // ümumi məbləğ = price * count (order yaradılan anda hesablanır)
-    @Column(nullable = false)
-    private Double totalAmount;
+    @Column(name = "total_amount", nullable = false, precision = 19, scale = 2)
+    private BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status; // CREATED, ACCEPTED, ...
 
-    @Column(name = "reject_reason") // Adı Liquibase-dəki kimi olmalıdır
-    private String rejectReason;
-
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     private void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        if (this.status == null) {
-            this.status = OrderStatus.CREATED;
-        }
+        createdAt = LocalDateTime.now();
+        if (status == null) status = OrderStatus.CREATED;
     }
 }

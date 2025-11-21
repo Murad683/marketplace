@@ -1,5 +1,6 @@
 package az.marketplace.dto.product;
 
 public record ProductPhotoResponse(
-        Long id
+        Long id,
+        String photoUrl
 ) {}

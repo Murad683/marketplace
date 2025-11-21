@@ -47,14 +47,14 @@ public class CurrentUserService {
     }
 
     /**
-     * Helper: hazır username lazımdırsa.
+     * Helper: hazır email lazımdırsa.
      * Bu, superuser yoxlaması üçün rahatdır.
      */
-    public String getCurrentUsername() {
+    public String getCurrentEmail() {
         Authentication auth = getAuthenticationOrThrow();
         Object principal = auth.getPrincipal();
         if (principal instanceof User u) {
-            return u.getUsername();
+            return u.getEmail();
         }
         // fallback: e.g. principal = String
         return auth.getName();
@@ -62,12 +62,12 @@ public class CurrentUserService {
 
     /**
      * Bizim xüsusi qaydamız:
-     * username "murad" olan istifadəçi platformadakı HƏR ŞEYİ idarə edə bilir.
+     * email "murad" olan istifadəçi platformadakı HƏR ŞEYİ idarə edə bilir.
      * Yəni bu super admin kimidir (root).
      */
     public boolean isSuperUser() {
-        String username = getCurrentUsername();
-        return username != null && username.equalsIgnoreCase("murad");
+        String email = getCurrentEmail();
+        return email != null && (email.equalsIgnoreCase("murad") || email.equalsIgnoreCase("murad@marketplace.local"));
     }
 
     /**
@@ -117,13 +117,13 @@ public class CurrentUserService {
      * məsələn ProductService-də:
      * if(!currentUserService.canManageProducts(productOwnerUsername)) throw AccessDeniedException...
      */
-    public boolean canManageProducts(String ownerUsername) {
+    public boolean canManageProducts(String ownerEmail) {
         // superuser hər şeyi idarə edə bilir
         if (isSuperUser()) return true;
 
         // merchant öz məhsulunu idarə edə bilər
-        String me = getCurrentUsername();
-        return me != null && me.equalsIgnoreCase(ownerUsername);
+        String me = getCurrentEmail();
+        return me != null && me.equalsIgnoreCase(ownerEmail);
     }
 
     /**

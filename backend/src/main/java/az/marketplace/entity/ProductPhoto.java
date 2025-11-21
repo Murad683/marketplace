@@ -3,9 +3,6 @@ package az.marketplace.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "product_photos")
@@ -26,17 +23,6 @@ public class ProductPhoto {
     @EqualsAndHashCode.Exclude
     private Product product;
 
-    // ŞƏKİLİN ÖZÜ (binary)
-    // MÜHÜM HISSƏ ↓↓↓
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "data", nullable = false, columnDefinition = "BYTEA")
-    private byte[] data;
-
-    // Məs: "image/jpeg", "image/png"
-    @Column(name = "content_type", nullable = false)
-    private String contentType;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+    @Column(name = "photo_url", nullable = false, length = 500)
+    private String photoUrl;
 }

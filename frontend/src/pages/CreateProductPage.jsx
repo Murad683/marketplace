@@ -4,8 +4,7 @@ import {
   getCategories,
   createCategory,
   createProduct,
-  getProductById,
-  uploadProductPhoto,
+  BASE_URL,
 } from "../api";
 
 export default function CreateProductPage() {
@@ -22,8 +21,10 @@ export default function CreateProductPage() {
 
   const [newCategoryName, setNewCategoryName] = useState("");
 
-  const [createdProduct, setCreatedProduct] = useState(null);
-  const [previewProduct, setPreviewProduct] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
+  const [creating, setCreating] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
 
   const loadCategories = () => {
     getCategories().then(setCategories);
@@ -38,43 +39,49 @@ export default function CreateProductPage() {
 
   const handleCreateProduct = async (e) => {
     e.preventDefault();
+    setSuccessMsg("");
+    if (!form.categoryId || !form.name || !form.details || !form.price || !form.stockCount) {
+      alert("Please fill in all fields.");
+      return;
+    }
+    if (!selectedFiles.length) {
+      alert("Please select at least one product photo.");
+      return;
+    }
+
     try {
-      const p = await createProduct(
-        {
-          categoryId: Number(form.categoryId),
-          name: form.name,
-          details: form.details,
-          price: Number(form.price),
-          stockCount: Number(form.stockCount),
-        },
-        auth
-      );
-      setCreatedProduct(p);
-      setPreviewProduct(p);
-      alert("Product created! Now upload photos below.");
+      setCreating(true);
+      const fd = new FormData();
+      fd.append("categoryId", Number(form.categoryId));
+      fd.append("name", form.name);
+      fd.append("details", form.details);
+      fd.append("price", Number(form.price));
+      fd.append("stockCount", Number(form.stockCount));
+      selectedFiles.forEach((file) => fd.append("images", file));
+
+      await createProduct(fd, auth);
+      setSuccessMsg("Product created successfully.");
+      setSelectedFiles([]);
+      setPreviewUrls([]);
+      setForm({
+        categoryId: "",
+        name: "",
+        details: "",
+        price: "",
+        stockCount: "",
+      });
     } catch (err) {
       alert("Create product failed: " + err.message);
+    } finally {
+      setCreating(false);
     }
   };
 
-  const handleFileChange = async (e) => {
-    if (!createdProduct) return;
-
+  const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
-    // birdən çox şəkil upload edək (ardıcıl)
-    for (const file of files) {
-      try {
-        await uploadProductPhoto(createdProduct.id, file, auth);
-      } catch (err) {
-        alert("Photo upload failed for one file: " + err.message);
-      }
-    }
-
-    // şəkillər yenilənsin
-    const refreshed = await getProductById(createdProduct.id);
-    setPreviewProduct(refreshed);
+    setSelectedFiles(files);
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setPreviewUrls(previews);
   };
 
   const handleAddCategory = async () => {
@@ -101,34 +108,58 @@ export default function CreateProductPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8 grid gap-6 lg:gap-8 lg:grid-cols-2">
-      {/* LEFT: create product form + create category */}
-      <div className="space-y-8">
-        {/* product create card */}
-        <div className="token-card p-6 space-y-4">
-          <h1 className="text-xl font-semibold">
-            Create Product
-          </h1>
+    <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="token-card p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold">Create Product</h1>
+            <p className="text-sm section-meta">
+              Fill all fields and add photos, then submit once.
+            </p>
+          </div>
+          {successMsg && (
+            <div className="text-sm text-emerald-600 font-semibold">{successMsg}</div>
+          )}
+        </div>
 
-          <form onSubmit={handleCreateProduct} className="space-y-4">
+        <form onSubmit={handleCreateProduct} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium block mb-1 section-meta">
                 Category
               </label>
-              <select
-                name="categoryId"
-                value={form.categoryId}
-                onChange={handleChange}
-                className="field w-full text-sm"
-                required
-              >
-                <option value="">Select category...</option>
-                {categories.map((c) => (
-                  <option value={c.id} key={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select
+                  name="categoryId"
+                  value={form.categoryId}
+                  onChange={handleChange}
+                  className="field w-full text-sm"
+                  required
+                >
+                  <option value="">Select category...</option>
+                  {categories.map((c) => (
+                    <option value={c.id} key={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  className="field w-32 text-sm"
+                  placeholder="New category"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                />
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleAddCategory();
+                  }}
+                  className="btn btn-secondary text-sm whitespace-nowrap"
+                  type="button"
+                >
+                  Add
+                </button>
+              </div>
             </div>
 
             <div>
@@ -139,145 +170,98 @@ export default function CreateProductPage() {
                 name="name"
                 className="field w-full text-sm"
                 onChange={handleChange}
+                value={form.name}
                 required
               />
             </div>
+          </div>
 
-            <div>
-              <label className="text-sm font-medium block mb-1 section-meta">
-                Details
-              </label>
-              <textarea
-                name="details"
-                className="field w-full text-sm h-24"
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="text-sm font-medium block mb-1 section-meta">
-                  Price
-                </label>
-                <input
-                  name="price"
-                  type="number"
-                  step="0.01"
-                  className="field w-full text-sm"
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="flex-1">
-                <label className="text-sm font-medium block mb-1 section-meta">
-                  Stock Count
-                </label>
-                <input
-                  name="stockCount"
-                  type="number"
-                  className="field w-full text-sm"
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <button
-              className="btn btn-primary w-full text-sm"
-              type="submit"
-            >
-              Create
-            </button>
-          </form>
-        </div>
-
-        {/* category create card */}
-        <div className="token-card p-6 space-y-3">
-          <h2 className="text-lg font-semibold">
-            Add New Category
-          </h2>
-          <div className="flex gap-2">
-            <input
-              className="field flex-1 text-sm"
-              placeholder="New category name"
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
+          <div>
+            <label className="text-sm font-medium block mb-1 section-meta">
+              Details
+            </label>
+            <textarea
+              name="details"
+              className="field w-full text-sm h-24"
+              onChange={handleChange}
+              value={form.details}
+              required
             />
-            <button
-              onClick={handleAddCategory}
-              className="btn btn-secondary text-sm whitespace-nowrap"
-            >
-              Add
-            </button>
           </div>
-          <p className="text-[11px] section-meta mt-1">
-            This calls POST /categories and refreshes the dropdown above.
-          </p>
-        </div>
-      </div>
 
-      {/* RIGHT: photo upload + live preview */}
-      <div className="token-card p-6 h-fit space-y-4">
-        <h2 className="text-lg font-semibold">
-          Photos & Preview
-        </h2>
-
-        {!createdProduct ? (
-          <div className="text-sm section-meta bg-[var(--bg-tertiary)] border border-dashed border-[var(--border-subtle)] rounded-md p-6 text-center">
-            After you create the product, you can upload photos here.
-          </div>
-        ) : (
-          <>
-            <div className="mb-4">
-              <label className="text-sm font-medium block mb-2 section-meta">
-                Upload product photos
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="text-sm font-medium block mb-1 section-meta">
+                Price
               </label>
               <input
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                className="block w-full text-sm section-meta"
+                name="price"
+                type="number"
+                step="0.01"
+                className="field w-full text-sm"
+                onChange={handleChange}
+                value={form.price}
+                required
               />
-              <p className="text-xs section-meta mt-1">
-                You can select multiple files. Each one is sent to
-                POST /products/{`{productId}`}/photos
-              </p>
             </div>
 
-            {previewProduct && (
-              <div className="callout p-4 space-y-2">
-                <div className="font-medium">
-                  {previewProduct.name}
-                </div>
-                <div className="text-sm font-semibold">
-                  ${previewProduct.price}
-                </div>
-                <div className="text-xs section-meta">
-                  Stock: {previewProduct.stockCount}
-                </div>
+            <div className="flex-1">
+              <label className="text-sm font-medium block mb-1 section-meta">
+                Stock Count
+              </label>
+              <input
+                name="stockCount"
+                type="number"
+                className="field w-full text-sm"
+                onChange={handleChange}
+                value={form.stockCount}
+                required
+              />
+            </div>
+          </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  {previewProduct.photoIds?.length ? (
-                    previewProduct.photoIds.map((pid) => (
-                      <img
-                        key={pid}
-                        src={`http://localhost:8080/products/${previewProduct.id}/photos/${pid}`}
-                        alt={previewProduct.name}
-                        className="rounded-md border border-[var(--border-subtle)] h-24 w-full object-cover"
-                      />
-                    ))
-                  ) : (
-                    <div className="section-meta text-sm col-span-2 text-center border border-dashed border-[var(--border-subtle)] rounded-md py-6">
-                      No photos yet
-                    </div>
-                  )}
-                </div>
+          <div>
+            <label className="text-sm font-medium block mb-2 section-meta">
+              Upload product photos (required)
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileChange}
+              className="block w-full text-sm section-meta"
+              required
+            />
+            <p className="text-xs section-meta mt-2">
+              Photos are uploaded together with the product in one request.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {previewUrls.length > 0 ? (
+              previewUrls.map((url, idx) => (
+                <img
+                  key={`local-${idx}`}
+                  src={url}
+                  alt="preview"
+                  className="rounded-md border border-[var(--border-subtle)] h-24 w-full object-cover"
+                />
+              ))
+            ) : (
+              <div className="section-meta text-sm col-span-2 sm:col-span-3 text-center border border-dashed border-[var(--border-subtle)] rounded-md py-6">
+                Select images to see preview here
               </div>
             )}
-          </>
-        )}
+          </div>
+
+          <button
+            className="btn btn-primary w-full text-sm"
+            type="submit"
+            disabled={creating}
+          >
+            {creating ? "Creating…" : "Create Product"}
+          </button>
+        </form>
       </div>
     </div>
   );

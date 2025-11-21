@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marketplace-backend
+  labels:
+    app: marketplace-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: marketplace-backend
+  template:
+    metadata:
+      labels:
+        app: marketplace-backend
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command: ["sh", "-c", "until nc -z marketplace-postgres 5433; do echo waiting for db; sleep 2; done;"]
+      containers:
+        - name: marketplace-backend
+          image: backend-marketplace-app:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: backend-uploads
+              mountPath: /app/uploads
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: backend-secret
+          readinessProbe:
+            httpGet:
+              path: /products
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3
+      volumes:
+        - name: backend-uploads
+          persistentVolumeClaim:
+            claimName: backend-uploads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: marketplace-backend
+  labels:
+    app: marketplace-backend
+spec:
+  type: LoadBalancer
+  selector:
+    app: marketplace-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backend-uploads-pvc
+  labels:
+    app: marketplace-backend
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

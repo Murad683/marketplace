@@ -8,12 +8,15 @@ import az.marketplace.exception.NotFoundException;
 import az.marketplace.repository.ProductPhotoRepository;
 import az.marketplace.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,46 +26,33 @@ public class ProductPhotoService {
     private final ProductPhotoRepository productPhotoRepository;
     private final CurrentUserService currentUserService;
 
-    // should match the application multipart config (5MB)
-    private static final long MAX_FILE_SIZE_BYTES = 5L * 1024L * 1024L;
+    private static final Path UPLOAD_ROOT = Path.of("/app/uploads");
 
     @Transactional
-    public ProductPhotoResponse uploadPhoto(Long productId, MultipartFile file) {
+    public ProductPhotoResponse addPhoto(Long productId, MultipartFile file) {
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
 
-        String ownerUsername = product.getMerchant().getUser().getUsername();
+        String ownerEmail = product.getMerchant().getUser().getEmail();
 
-        // icazə: yalnız həmin merchant yaxud superuser
-        if (!currentUserService.canManageProducts(ownerUsername)) {
-            throw new AccessDeniedException("You cannot upload photo for this product");
+        if (!currentUserService.canManageProducts(ownerEmail)) {
+            throw new AccessDeniedException("You cannot attach photo for this product");
         }
 
-        // quick service-level size check to provide a clear error before trying to read
-        if (file.getSize() > MAX_FILE_SIZE_BYTES) {
-            throw new IllegalArgumentException("File size exceeds maximum allowed (5 MB)");
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("image file is required");
         }
 
-        byte[] bytes;
-        try {
-            bytes = file.getBytes();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read file bytes", e);
-        }
+        String storedPath = storeImage(file);
 
         ProductPhoto photo = ProductPhoto.builder()
                 .product(product)
-                .data(bytes)
-                .contentType(
-                        file.getContentType() != null
-                                ? file.getContentType()
-                                : MediaType.APPLICATION_OCTET_STREAM_VALUE
-                )
+                .photoUrl(storedPath)
                 .build();
 
         photo = productPhotoRepository.save(photo);
-        return new ProductPhotoResponse(photo.getId());
+        return new ProductPhotoResponse(photo.getId(), photo.getPhotoUrl());
     }
 
     @Transactional(readOnly = true)
@@ -75,5 +65,23 @@ public class ProductPhotoService {
         }
 
         return photo;
+    }
+
+    private String storeImage(MultipartFile file) {
+        try {
+            Files.createDirectories(UPLOAD_ROOT);
+            String original = StringUtils.cleanPath(file.getOriginalFilename() != null ? file.getOriginalFilename() : "");
+            String ext = "";
+            int dot = original.lastIndexOf('.');
+            if (dot != -1 && dot < original.length() - 1) {
+                ext = original.substring(dot);
+            }
+            String filename = UUID.randomUUID() + ext;
+            Path target = UPLOAD_ROOT.resolve(filename);
+            Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+            return "/uploads/" + filename;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to store image", e);
+        }
     }
 }

@@ -25,27 +25,27 @@ public class JwtService {
     @Value("${app.jwt.expiration-ms}")
     private long expirationMs;
 
-    public String generateToken(String username, UserType role) {
+    public String generateToken(String email, UserType role) {
         Map<String, Object> extraClaims = Map.of(
                 "role", role != null ? role.name() : null
         );
-        return buildToken(extraClaims, username);
+        return buildToken(extraClaims, email);
     }
 
-    private String buildToken(Map<String, Object> extraClaims, String username) {
+    private String buildToken(Map<String, Object> extraClaims, String email) {
         Date now = Date.from(Instant.now());
         Date expiry = new Date(now.getTime() + expirationMs);
 
         return Jwts.builder()
                 .setClaims(extraClaims)
-                .setSubject(username)
+                .setSubject(email)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String extractUsername(String token) {
+    public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -55,10 +55,10 @@ public class JwtService {
         return role == null ? null : role.toString();
     }
 
-    public boolean isTokenValid(String token, String expectedUsername) {
-        String username = extractUsername(token);
-        return (username != null
-                && username.equals(expectedUsername)
+    public boolean isTokenValid(String token, String expectedEmail) {
+        String email = extractEmail(token);
+        return (email != null
+                && email.equals(expectedEmail)
                 && !isTokenExpired(token));
     }
 

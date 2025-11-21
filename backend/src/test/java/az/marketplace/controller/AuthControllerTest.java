@@ -39,7 +39,7 @@ class AuthControllerTest {
 
         String json = """
                 {
-                  "username": "murad",
+                  "email": "murad@example.com",
                   "password": "12345",
                   "name": "Murad",
                   "surname": "Mammadov",

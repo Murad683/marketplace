@@ -17,9 +17,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // username = login üçün istifadə olunacaq unikal field
-    @Column(nullable = false, unique = true)
-    private String username;
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
 
     @Column(nullable = false)
     private String name;
@@ -34,11 +33,13 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String password; // bcrypt hash olacaq
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     private void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
     }
 }

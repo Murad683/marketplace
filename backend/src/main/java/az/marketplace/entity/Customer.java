@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -23,10 +24,10 @@ public class Customer {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @Column(nullable = false)
-    private Double balance;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal balance;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     // Customer -> Orders
@@ -47,7 +48,7 @@ public class Customer {
     private void onCreate() {
         this.createdAt = LocalDateTime.now();
         if (this.balance == null) {
-            this.balance = 0.0;
+            this.balance = BigDecimal.ZERO;
         }
     }
 }
