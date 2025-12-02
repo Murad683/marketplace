@@ -19,12 +19,21 @@ async function requestJson(path, { method = "GET", body, token } = {}) {
   });
 
   if (!res.ok) {
-    let msg = `${res.status}`;
+    let payload = null;
     try {
-      const err = await res.json();
-      msg = JSON.stringify(err);
+      payload = await res.json();
     } catch {}
-    throw new Error(msg);
+    const message =
+      (payload && payload.message) ||
+      (payload && payload.error) ||
+      (payload && payload.detail) ||
+      (payload && typeof payload === "object" ? JSON.stringify(payload) : null) ||
+      `${res.status}`;
+    const error = new Error(message);
+    if (payload && payload.code) error.code = payload.code;
+    if (payload) error.payload = payload;
+    error.status = res.status;
+    throw error;
   }
 
   // Bəzi endpointlər boş cavab qaytara bilər
@@ -45,12 +54,21 @@ async function requestForm(path, { method = "POST", formData, token } = {}) {
   });
 
   if (!res.ok) {
-    let msg = `${res.status}`;
+    let payload = null;
     try {
-      const err = await res.json();
-      msg = JSON.stringify(err);
+      payload = await res.json();
     } catch {}
-    throw new Error(msg);
+    const message =
+      (payload && payload.message) ||
+      (payload && payload.error) ||
+      (payload && payload.detail) ||
+      (payload && typeof payload === "object" ? JSON.stringify(payload) : null) ||
+      `${res.status}`;
+    const error = new Error(message);
+    if (payload && payload.code) error.code = payload.code;
+    if (payload) error.payload = payload;
+    error.status = res.status;
+    throw error;
   }
 
   const ct = (res.headers.get("content-type") || "").toLowerCase();
@@ -71,6 +89,12 @@ export const loginRequest = ({ email, password }) =>
 
 export const registerRequest = (body) =>
   requestJson("/auth/register", { method: "POST", body });
+
+export const getProfile = (auth) =>
+  requestJson("/me", { token: auth?.token });
+
+export const getMerchantProfile = (auth) =>
+  requestJson("/merchant/me", { token: auth?.token });
 
 /* ----------------------------------
    PRODUCTS

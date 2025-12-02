@@ -5,7 +5,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import NotificationBell from "./NotificationBell";
 
 export default function Header() {
-  const { isLoggedIn, isCustomer, isMerchant, logout } = useAuth();
+  const { isLoggedIn, isCustomer, isMerchant } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   return (
@@ -82,13 +82,26 @@ export default function Header() {
             <NotificationBell />
           )}
 
-          {isLoggedIn && (
-            <button
-              onClick={logout}
-              className="navbar-link font-semibold transition-colors"
+          {isCustomer && (
+            <Link
+              to="/profile"
+              className="navbar-link profile-avatar transition-colors"
+              title="Profile"
             >
-              Logout
-            </button>
+              <span aria-hidden>👤</span>
+              <span className="sr-only">Profile</span>
+            </Link>
+          )}
+
+          {isMerchant && (
+            <Link
+              to="/merchant/profile"
+              className="navbar-link profile-avatar transition-colors"
+              title="Profile"
+            >
+              <span aria-hidden>👤</span>
+              <span className="sr-only">Profile</span>
+            </Link>
           )}
 
           {/* THEME TOGGLE BUTTON */}

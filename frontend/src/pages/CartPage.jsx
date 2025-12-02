@@ -32,6 +32,14 @@ export default function CartPage() {
       alert("Checkout successful!");
       load();
     } catch (err) {
+      if (err.code === "NO_BALANCE") {
+        alert("You have no balance to continue order");
+        return;
+      }
+      if (err.code === "INSUFFICIENT_BALANCE") {
+        alert("Your balance is not enough to cover this order");
+        return;
+      }
       alert("Checkout failed: " + err.message);
     }
   };

@@ -18,6 +18,8 @@ import EditProductPage from "./pages/EditProductPage";
 import MerchantOrdersPage from "./pages/MerchantOrdersPage";
 import MerchantProductsPage from "./pages/MerchantProductsPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import ProfilePage from "./pages/ProfilePage";
+import MerchantProfilePage from "./pages/MerchantProfilePage";
 
 export default function App() {
   return (
@@ -42,6 +44,7 @@ export default function App() {
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
 
             {/* merchant */}
@@ -55,6 +58,7 @@ export default function App() {
               element={<EditProductPage />}
             />
             <Route path="/merchant/orders" element={<MerchantOrdersPage />} />
+            <Route path="/merchant/profile" element={<MerchantProfilePage />} />
 
             {/* fallback */}
             <Route

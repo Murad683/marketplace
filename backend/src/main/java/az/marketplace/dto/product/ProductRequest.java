@@ -29,7 +29,4 @@ public class ProductRequest {
     @NotNull
     @Min(0)
     private Integer stockCount;
-
-    // Photos əlavə endpointlə verilir:
-    // POST /products/{productId}/photos  (body: { "photoUrl": "https://..." })
 }

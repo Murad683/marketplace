@@ -5,6 +5,7 @@ import { getMerchantOrders, updateOrderStatus } from "../api";
 // Xəritə: backend enum -> ekranda göstərilən label
 const STATUS_OPTIONS = [
   { value: "CREATED", label: "CREATED" },
+  { value: "PAID_FROM_BALANCE", label: "PAID FROM BALANCE" },
   { value: "ACCEPTED", label: "ACCEPTED" },
   { value: "REJECT_BY_MERCHANT", label: "REJECT BY MERCHANT" },
   { value: "DELIVERED", label: "DELIVERED" },

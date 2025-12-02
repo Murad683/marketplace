@@ -148,6 +148,18 @@ body {
   background: var(--bg-tertiary);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Navbar */
 .navbar-shell {
   background: var(--navbar-bg);
@@ -170,6 +182,25 @@ body {
 .navbar-link:hover {
   opacity: 1;
   color: var(--accent);
+}
+
+.profile-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-tertiary);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-soft);
+}
+
+.profile-avatar:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  opacity: 1;
 }
 
 /* Buttons */

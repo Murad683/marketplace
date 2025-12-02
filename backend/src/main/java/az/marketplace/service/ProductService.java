@@ -182,7 +182,7 @@ public class ProductService {
                 .categoryId(product.getCategory().getId())
                 .categoryName(product.getCategory().getName())
                 .photoUrls(photoUrls)
-                .createdAt(product.getCreatedAt())   // <<=== ƏSAS SƏTİR
+                .createdAt(product.getCreatedAt())
                 .build();
     }
 }

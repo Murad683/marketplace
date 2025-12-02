@@ -37,6 +37,14 @@ export default function OrdersPage() {
       load();
       alert("Checkout successful, orders created!");
     } catch (err) {
+      if (err.code === "NO_BALANCE") {
+        alert("You have no balance to continue order");
+        return;
+      }
+      if (err.code === "INSUFFICIENT_BALANCE") {
+        alert("Your balance is not enough to cover this order");
+        return;
+      }
       alert("Checkout failed: " + err.message);
     }
   };
@@ -135,6 +143,7 @@ export default function OrdersPage() {
             >
               <option value="ALL">All</option>
               <option value="CREATED">Created</option>
+              <option value="PAID_FROM_BALANCE">Paid from balance</option>
               <option value="ACCEPTED">Accepted</option>
               <option value="DELIVERED">Delivered</option>
               <option value="REJECT_BY_CUSTOMER">Cancelled</option>
@@ -357,6 +366,8 @@ function statusTone(status) {
   switch (status) {
     case "CREATED":
       return "new";
+    case "PAID_FROM_BALANCE":
+      return "progress";
     case "ACCEPTED":
       return "progress";
     case "DELIVERED":
@@ -374,6 +385,8 @@ function labelForStatus(s) {
   switch (s) {
     case "CREATED":
       return "Created";
+    case "PAID_FROM_BALANCE":
+      return "Paid from balance";
     case "ACCEPTED":
       return "Accepted";
     case "DELIVERED":

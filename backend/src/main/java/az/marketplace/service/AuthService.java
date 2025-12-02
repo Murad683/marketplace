@@ -61,7 +61,7 @@ public class AuthService {
 
             Customer customer = Customer.builder()
                     .user(user)
-                    .balance(BigDecimal.ZERO)
+                    .balance(new BigDecimal("10000.00"))
                     .build();
 
             customerRepository.save(customer);

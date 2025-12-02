@@ -28,6 +28,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final NotificationService notificationService;
+    private final BalanceService balanceService;
 
     @Transactional
     public List<OrderResponse> createOrdersFromCart(Customer customer) {
@@ -39,13 +40,19 @@ public class OrderService {
         if (items.isEmpty()) return List.of();
 
         // validate stock
+        BigDecimal orderTotal = BigDecimal.ZERO;
         for (CartItem item : items) {
             Product product = item.getProduct();
             int cnt = Optional.ofNullable(item.getCount()).orElse(0);
             int stock = Optional.ofNullable(product.getStockCount()).orElse(0);
             if (cnt <= 0) throw new IllegalArgumentException("Invalid quantity for " + product.getName());
             if (cnt > stock) throw new IllegalArgumentException("Product '" + product.getName() + "' only " + stock + " left");
+            BigDecimal price = Optional.ofNullable(product.getPrice()).orElse(BigDecimal.ZERO);
+            orderTotal = orderTotal.add(price.multiply(BigDecimal.valueOf(cnt)));
         }
+
+        // Atomic debit before creating orders; rollback will restore if anything fails
+        balanceService.debitForOrder(customer, orderTotal);
 
         List<Order> createdOrders = new ArrayList<>();
         LinkedHashSet<Product> touchedProducts = new LinkedHashSet<>();
@@ -61,7 +68,7 @@ public class OrderService {
                     .product(p)
                     .count(cnt)
                     .totalAmount(total)
-                    .status(OrderStatus.CREATED)
+                    .status(OrderStatus.PAID_FROM_BALANCE)
                     .build();
 
             o = orderRepository.save(o);
@@ -114,6 +121,7 @@ public class OrderService {
         OrderStatus newStatus = req.getStatus();
         order.setStatus(newStatus);
 
+        boolean wasPaidFromBalance = isPaidFromBalance(prevStatus);
         if (newStatus == OrderStatus.REJECT_BY_MERCHANT
                 && prevStatus != OrderStatus.REJECT_BY_MERCHANT
                 && prevStatus != OrderStatus.REJECT_BY_CUSTOMER) {
@@ -122,7 +130,14 @@ public class OrderService {
             product.setStockCount(currentStock + Optional.ofNullable(order.getCount()).orElse(0));
             productRepository.save(product);
         }
+        boolean shouldRefund = newStatus == OrderStatus.REJECT_BY_MERCHANT
+                && !isRejected(prevStatus)
+                && wasPaidFromBalance;
         order = orderRepository.save(order);
+
+        if (shouldRefund) {
+            balanceService.credit(order.getCustomer(), order.getTotalAmount());
+        }
         return toOrderResponse(order);
     }
 
@@ -150,6 +165,8 @@ public class OrderService {
             throw new IllegalArgumentException("Delivered orders cannot be cancelled");
         }
 
+        boolean shouldRefund = !isRejected(order.getStatus()) && isPaidFromBalance(order.getStatus());
+
         order.setStatus(OrderStatus.REJECT_BY_CUSTOMER);
         // restore stock because customer cancelled
         Product product = order.getProduct();
@@ -158,6 +175,10 @@ public class OrderService {
         productRepository.save(product);
 
         order = orderRepository.save(order);
+
+        if (shouldRefund) {
+            balanceService.credit(order.getCustomer(), order.getTotalAmount());
+        }
 
         return toOrderResponse(order);
     }
@@ -172,5 +193,13 @@ public class OrderService {
                 .status(o.getStatus())
                 .createdAt(o.getCreatedAt())
                 .build();
+    }
+
+    private boolean isPaidFromBalance(OrderStatus status) {
+        return status == OrderStatus.PAID_FROM_BALANCE || status == OrderStatus.ACCEPTED;
+    }
+
+    private boolean isRejected(OrderStatus status) {
+        return status == OrderStatus.REJECT_BY_CUSTOMER || status == OrderStatus.REJECT_BY_MERCHANT;
     }
 }
