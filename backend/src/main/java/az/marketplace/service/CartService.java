@@ -46,7 +46,7 @@ public class CartService {
                 .collect(Collectors.toList());
     }
 
-    // 🔥 UPDATED METHOD: stock-aware addToCart with quantity
+    // UPDATED METHOD: stock-aware addToCart with quantity
     @Transactional
     public CartItemResponse addToCart(Customer customer, AddToCartRequest req) {
         Cart cart = getOrCreateCart(customer.getUser());

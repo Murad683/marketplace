@@ -155,7 +155,7 @@ public class OrderService {
             throw new IllegalArgumentException("This order is already rejected by merchant");
         }
 
-        // Artıq ləğv olunmuşdursa, NO-OP kimi qaytarmaq da olar — burada error veririk:
+        // Artıq ləğv olunmuşdursa, NO-OP kimi qaytarmaq da olar - burada error veririk:
         if (order.getStatus() == OrderStatus.REJECT_BY_CUSTOMER) {
             throw new IllegalArgumentException("This order is already cancelled by customer");
         }

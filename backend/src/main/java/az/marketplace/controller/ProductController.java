@@ -71,12 +71,6 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
-    // ============================
-    //  ŞƏKİL YÜKLƏMƏK (MERCHANT)
-    //  POST /products/{productId}/photos
-    //  Body: multipart/form-data (field adı: "file")
-    //  Cavab: { "id": <photoId> }
-    // ============================
     @PostMapping(value = "/{productId}/photos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MERCHANT')")
     public ResponseEntity<ProductPhotoResponse> uploadPhoto(
@@ -88,12 +82,6 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    // ============================
-    //  ŞƏKİLİ GÖRÜNTÜLƏMƏK (PUBLIC)
-    //  GET /products/{productId}/photos/{photoId}
-    //  Cavab: Content-Type = image/jpeg (və ya image/png), body = şəkilin özü (byte[])
-    //  <img src="http://localhost:8080/products/5/photos/12" />
-    // ============================
     @GetMapping("/{productId}/photos/{photoId}")
     public ResponseEntity<Void> getPhoto(
             @PathVariable Long productId,

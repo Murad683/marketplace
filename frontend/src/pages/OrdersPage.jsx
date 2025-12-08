@@ -202,8 +202,6 @@ export default function OrdersPage() {
   );
 }
 
-/* ---------- Subcomponents ---------- */
-
 function OrdersSection({ title, loading, items, emptyText, renderItem }) {
   return (
     <div className="token-card">
@@ -337,8 +335,6 @@ function StatusPill({ status }) {
     </span>
   );
 }
-
-/* ---------- Utils ---------- */
 
 function formatCurrency(n) {
   if (typeof n !== "number") return n;

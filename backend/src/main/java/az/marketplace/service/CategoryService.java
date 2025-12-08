@@ -25,13 +25,10 @@ public class CategoryService {
     @Transactional
     public CategoryResponse createCategory(CategoryRequest request) {
 
-        // icazə ancaq:
-        // - superuser (murad)
-        // - və ya MERCHANT
+        // icazə ancaq MERCHANT
         User me = currentUserService.getCurrentUserOrThrow();
-        if (!(currentUserService.isSuperUser()
-                || me.getType() == UserType.MERCHANT)) {
-            throw new AccessDeniedException("Only merchant or admin can create categories");
+        if (me.getType() != UserType.MERCHANT) {
+            throw new AccessDeniedException("Only merchant can create categories");
         }
 
         categoryRepository.findByName(request.getName())

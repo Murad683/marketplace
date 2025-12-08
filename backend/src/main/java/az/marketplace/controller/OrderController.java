@@ -52,7 +52,7 @@ public class OrderController {
         return ResponseEntity.ok(orderService.updateOrderStatus(merchant, orderId, req));
     }
 
-    // ❗ Burada HƏM PATCH, HƏM POST qəbul edirik (dev/proxy-lərdə PATCH ilişə bilər)
+    // Burada HƏM PATCH, HƏM POST qəbul edirik (dev/proxy-lərdə PATCH ilişə bilər)
     @RequestMapping(
             path = "/orders/{orderId}/cancel",
             method = { RequestMethod.PATCH, RequestMethod.POST }

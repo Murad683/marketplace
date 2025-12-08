@@ -81,11 +81,6 @@ public class JwtService {
                 .getBody();
     }
 
-    /**
-     * Secret string-i (məs: "change_me") götürürük,
-     * SHA-256 hash-ə çeviririk, ilk 32 byte-dan HMAC açarı düzəldirik.
-     * Bu artıq Base64 tələb etmir və sabitdir.
-     */
     private SecretKey getSignKey() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

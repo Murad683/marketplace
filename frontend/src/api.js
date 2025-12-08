@@ -2,9 +2,6 @@
 
 export const BASE_URL = "http://localhost:8080";
 
-/* ----------------------------------
-   Low-level helpers
----------------------------------- */
 async function requestJson(path, { method = "GET", body, token } = {}) {
   const headers = {
     "Content-Type": "application/json",
@@ -81,9 +78,6 @@ async function requestForm(path, { method = "POST", formData, token } = {}) {
 export const productPhotoUrl = (productId, photoId) =>
   `${BASE_URL}/products/${productId}/photos/${photoId}`;
 
-/* ----------------------------------
-   AUTH
----------------------------------- */
 export const loginRequest = ({ email, password }) =>
   requestJson("/auth/login", { method: "POST", body: { email, password } });
 
@@ -96,9 +90,6 @@ export const getProfile = (auth) =>
 export const getMerchantProfile = (auth) =>
   requestJson("/merchant/me", { token: auth?.token });
 
-/* ----------------------------------
-   PRODUCTS
----------------------------------- */
 export const getProducts = () => requestJson("/products");
 
 export const getProductById = (id) => requestJson(`/products/${id}`);
@@ -139,9 +130,6 @@ export const addProductPhoto = (productId, photoUrl, auth) =>
     token: auth?.token,
   });
 
-/* ----------------------------------
-   CATEGORIES
----------------------------------- */
 export const getCategories = () => requestJson("/categories");
 
 export const createCategory = (name, auth) =>
@@ -151,9 +139,6 @@ export const createCategory = (name, auth) =>
     token: auth?.token,
   });
 
-/* ----------------------------------
-   WISHLIST (customer)
----------------------------------- */
 export const getWishlist = (auth) =>
   requestJson("/wishlist", { token: auth?.token });
 
@@ -170,9 +155,6 @@ export const removeFromWishlist = (productId, auth) =>
     token: auth?.token,
   });
 
-/* ----------------------------------
-   CART (customer)
----------------------------------- */
 export const getCart = (auth) =>
   requestJson("/cart", { token: auth?.token });
 
@@ -189,9 +171,6 @@ export const deleteCartItem = (itemId, auth) =>
     token: auth?.token,
   });
 
-/* ----------------------------------
-   ORDERS
----------------------------------- */
 // customer: checkout (cart -> orders)
 export const createOrders = (auth) =>
   requestJson("/orders", { method: "POST", token: auth?.token });
@@ -251,9 +230,6 @@ export async function cancelOrder(orderId, reason, auth) {
   }
 }
 
-/* ----------------------------------
-   NOTIFICATIONS
----------------------------------- */
 export const getNotifications = (auth) =>
   requestJson("/api/notifications", { token: auth?.token });
 
